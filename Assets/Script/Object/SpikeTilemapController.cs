@@ -85,8 +85,12 @@ public class SpikeTilemapController : MonoBehaviour
     {
         if (!other.CompareTag(playerTag)) return;
 
-        // reset màn hiện tại
-        var scene = SceneManager.GetActiveScene();
-        SceneManager.LoadScene(scene.buildIndex);
+        if (LevelManager.I != null)
+            LevelManager.I.ReloadCurrentLevel();
+        else
+            UnityEngine.SceneManagement.SceneManager.LoadScene(
+                UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex
+            );
     }
+
 }

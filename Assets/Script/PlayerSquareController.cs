@@ -61,6 +61,9 @@ public class PlayerSquareController : MonoBehaviour
 
     private void Update()
     {
+        if (Input.GetKeyDown(KeyCode.R) && !shifting && LevelManager.I != null)
+            LevelManager.I.ReloadCurrentLevel();
+
         if (cd > 0f) cd -= Time.deltaTime;
 
         if (!shifting && cd <= 0f && Input.GetKeyDown(shiftKey))

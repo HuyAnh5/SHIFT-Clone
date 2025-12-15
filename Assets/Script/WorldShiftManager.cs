@@ -35,4 +35,12 @@ public class WorldShiftManager : MonoBehaviour
         SolidWorld = (SolidWorld == WorldState.Black) ? WorldState.White : WorldState.Black;
         OnWorldChanged?.Invoke(SolidWorld);
     }
+
+    public void SetWorld(WorldState world)
+    {
+        if (SolidWorld == world) return;
+        SolidWorld = world;
+        OnWorldChanged?.Invoke(SolidWorld);
+    }
+
 }
