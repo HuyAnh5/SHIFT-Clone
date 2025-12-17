@@ -2,7 +2,7 @@
 - Project name: SHIFT-Clone
 - Unity version: Unity 6000.2.15f1
 - Active game object:
-  - Name: Player
-  - Tag: Player
-  - Layer: Player
+  - Name: Tilemap_White
+  - Tag: Untagged
+  - Layer: WorldWhite
 <!-- UNITY CODE ASSIST INSTRUCTIONS END -->

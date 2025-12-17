@@ -134,13 +134,13 @@ public class PlayerSquareController : MonoBehaviour
         Sequence seq = DOTween.Sequence();
 
         // Animation chìm qua platform trong lúc camera đang xoay
-        seq.Append(rb.DOMove(beforePos + (Vector2)(oldGravityDir * push), shiftAnimDuration).SetEase(Ease.InOutSine));
+        seq.Append(rb.DOMove(beforePos + (Vector2)(oldGravityDir * push), shiftAnimDuration*2f).SetEase(Ease.InOutSine));
 
         if (squashOnShift)
         {
             Vector3 baseScale = transform.localScale;
             seq.Join(transform
-                .DOScale(new Vector3(baseScale.x, baseScale.y * squashY, baseScale.z), shiftAnimDuration * 0.5f)
+                .DOScale(new Vector3(baseScale.x, baseScale.y * squashY, baseScale.z), shiftAnimDuration * 0.75f)
                 .SetEase(Ease.InOutSine)
                 .SetLoops(2, LoopType.Yoyo));
         }
