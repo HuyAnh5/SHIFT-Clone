@@ -725,8 +725,9 @@ GameObject:
   - component: {fileID: 498821467}
   - component: {fileID: 498821466}
   - component: {fileID: 498821465}
-  - component: {fileID: 498821464}
   - component: {fileID: 498821469}
+  - component: {fileID: 498821464}
+  - component: {fileID: 498821470}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -927,6 +928,31 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerWorldColor
   colorInBlackWorld: {r: 1, g: 0.5176471, b: 0.46666667, a: 1}
   colorInWhiteWorld: {r: 0.16037738, g: 0.16037738, b: 0.16037738, a: 1}
+--- !u!114 &498821470
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 498821463}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6aa6f11d8abe804ca04ec7e31c881fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerMarkSwapController
+  markKey: 101
+  swapKey: 102
+  markRadius: 0.7
+  swapBlockMask:
+    serializedVersion: 2
+    m_Bits: 1024
+  requireAirborne: 1
+  validateDestination: 0
+  solidMask:
+    serializedVersion: 2
+    m_Bits: 704
+  playerController: {fileID: 498821464}
+  cameraShake: {fileID: 519420035}
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -941,6 +967,7 @@ GameObject:
   - component: {fileID: 519420030}
   - component: {fileID: 519420033}
   - component: {fileID: 519420034}
+  - component: {fileID: 519420035}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -1112,6 +1139,23 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
   CustomBlends: {fileID: 0}
+--- !u!114 &519420035
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 519420028}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 92246a3db6a5b2246af7d46e8ea6247a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CameraShake2D
+  duration: 0.12
+  strength: 0.25
+  vibrato: 14
+  randomness: 90
+  fadeOut: 1
 --- !u!1 &619394800
 GameObject:
   m_ObjectHideFlags: 0

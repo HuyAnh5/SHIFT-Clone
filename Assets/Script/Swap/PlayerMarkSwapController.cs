@@ -1,0 +1,198 @@
+﻿using System.Collections;
+using UnityEngine;
+
+[RequireComponent(typeof(Rigidbody2D), typeof(Collider2D))]
+public class PlayerMarkSwapController : MonoBehaviour
+{
+    [Header("Input")]
+    [SerializeField] private KeyCode markKey = KeyCode.E;
+    [SerializeField] private KeyCode swapKey = KeyCode.F;
+
+    [Header("Mark")]
+    [SerializeField] private float markRadius = 0.7f;
+    [SerializeField] private LayerMask swapBlockMask;
+
+    [Header("Swap Constraints")]
+    [SerializeField] private bool requireAirborne = true;
+
+    [Header("Optional: destination safety check")]
+    [SerializeField] private bool validateDestination = false;
+    [SerializeField] private LayerMask solidMask; // dùng cùng layer với ground/wall nếu muốn check kẹt
+
+    [Header("Refs")]
+    [SerializeField] private PlayerSquareController playerController;
+    [SerializeField] private CameraShake2D cameraShake;
+
+    private Rigidbody2D rb;
+    private Collider2D col;
+
+    // mark riêng theo world: index 0=Black, 1=White
+    private SwapBlock2D[] markedByWorld = new SwapBlock2D[2];
+
+    private readonly Collider2D[] overlapHits = new Collider2D[12];
+    private bool swapping;
+
+    private void Awake()
+    {
+        rb = GetComponent<Rigidbody2D>();
+        col = GetComponent<Collider2D>();
+
+        if (playerController == null) playerController = GetComponent<PlayerSquareController>();
+        if (cameraShake == null && Camera.main != null)
+            cameraShake = Camera.main.GetComponent<CameraShake2D>();
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(markKey))
+            TryMarkToggle();
+
+        if (Input.GetKeyDown(swapKey))
+            TrySwap();
+    }
+
+    private void TryMarkToggle()
+    {
+        WorldState w = (WorldShiftManager.I != null) ? WorldShiftManager.I.SolidWorld : WorldState.Black;
+        int wi = WorldIndex(w);
+
+        var candidate = FindNearestSwapBlockInCurrentWorld(w);
+        if (candidate == null)
+        {
+            cameraShake?.ShakeFail();
+            return;
+        }
+
+        var current = markedByWorld[wi];
+
+        // bấm mark lần nữa khi đang chạm/gần đúng object đó => unmark
+        if (current != null && current == candidate)
+        {
+            current.SetMarked(false);
+            markedByWorld[wi] = null;
+            return;
+        }
+
+        // mark cái mới (unmark cái cũ trong cùng world)
+        if (current != null) current.SetMarked(false);
+
+        candidate.SetMarked(true);
+        markedByWorld[wi] = candidate;
+    }
+
+    private void TrySwap()
+    {
+        if (swapping) { cameraShake?.ShakeFail(); return; }
+
+        WorldState w = (WorldShiftManager.I != null) ? WorldShiftManager.I.SolidWorld : WorldState.Black;
+        int wi = WorldIndex(w);
+
+        var target = markedByWorld[wi];
+        if (target == null || !target.IsActiveInCurrentWorld())
+        {
+            cameraShake?.ShakeFail();
+            return;
+        }
+
+        // không cho swap khi đang shift animation
+        if (playerController != null && playerController.IsShifting)
+        {
+            cameraShake?.ShakeFail();
+            return;
+        }
+
+        // chỉ swap khi airborne
+        if (requireAirborne && playerController != null && playerController.IsGroundedNow)
+        {
+            cameraShake?.ShakeFail();
+            return;
+        }
+
+        if (validateDestination)
+        {
+            if (!IsDestinationFreeForPlayer(target.Rb.position))
+            {
+                cameraShake?.ShakeFail();
+                return;
+            }
+        }
+
+        StartCoroutine(SwapRoutine(target, wi));
+    }
+
+    private IEnumerator SwapRoutine(SwapBlock2D target, int wi)
+    {
+        swapping = true;
+
+        // làm trong fixed để ít “giật” hơn
+        yield return new WaitForFixedUpdate();
+
+        Vector2 playerPos = rb.position;
+        Vector2 playerVel = rb.linearVelocity;
+
+        Rigidbody2D brb = target.Rb;
+        Vector2 blockPos = brb.position;
+        Vector2 blockVel = brb.linearVelocity;
+
+        // swap vị trí, giữ quán tính riêng
+        rb.position = blockPos;
+        rb.linearVelocity = playerVel;
+
+        brb.position = playerPos;
+        brb.linearVelocity = blockVel;
+
+        Physics2D.SyncTransforms();
+
+        // auto-unmark sau khi swap
+        target.SetMarked(false);
+        markedByWorld[wi] = null;
+
+        swapping = false;
+    }
+
+    private SwapBlock2D FindNearestSwapBlockInCurrentWorld(WorldState w)
+    {
+        int count = Physics2D.OverlapCircleNonAlloc(transform.position, markRadius, overlapHits, swapBlockMask);
+        if (count <= 0) return null;
+
+        float bestD2 = float.PositiveInfinity;
+        SwapBlock2D best = null;
+
+        for (int i = 0; i < count; i++)
+        {
+            var c = overlapHits[i];
+            if (c == null) continue;
+
+            var sb = c.GetComponentInParent<SwapBlock2D>();
+            if (sb == null) continue;
+            if (sb.OwnerWorld != w) continue;
+            if (!sb.IsActiveInCurrentWorld()) continue;
+
+            float d2 = ((Vector2)sb.transform.position - (Vector2)transform.position).sqrMagnitude;
+            if (d2 < bestD2) { bestD2 = d2; best = sb; }
+        }
+
+        return best;
+    }
+
+    private bool IsDestinationFreeForPlayer(Vector2 destPos)
+    {
+        // check overlap bằng bounds collider player tại vị trí mới
+        Bounds b = col.bounds;
+        Vector2 size = b.size;
+        Vector2 offset = (Vector2)b.center - rb.position;
+
+        Vector2 checkCenter = destPos + offset;
+        var hit = Physics2D.OverlapBox(checkCenter, size * 0.95f, 0f, solidMask);
+        return hit == null;
+    }
+
+    private static int WorldIndex(WorldState w) => (w == WorldState.Black) ? 0 : 1;
+
+#if UNITY_EDITOR
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.DrawWireSphere(transform.position, markRadius);
+    }
+#endif
+}

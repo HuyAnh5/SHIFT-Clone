@@ -15,9 +15,9 @@ TagManager:
   - WorldWhite
   - Wall
   - Ground
-  - 
-  - 
-  - 
+  - SwapBlock
+  - Turret
+  - Bullet
   - 
   - 
   - 

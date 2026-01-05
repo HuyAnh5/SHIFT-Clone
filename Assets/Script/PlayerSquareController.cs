@@ -47,6 +47,9 @@ public class PlayerSquareController : MonoBehaviour
     private float cd;
     private bool shifting;
     private Tween shiftTween;
+   
+
+
 
     private float GravitySign => Mathf.Sign(rb.gravityScale == 0 ? 1f : rb.gravityScale);
 
@@ -221,4 +224,7 @@ public class PlayerSquareController : MonoBehaviour
         Collider2D[] hits = new Collider2D[8];
         return box.Overlap(filter, hits) > 0;
     }
+
+    public bool IsShifting => shifting;
+    public bool IsGroundedNow => IsGrounded();
 }
