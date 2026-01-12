@@ -2,7 +2,7 @@
 - Project name: SHIFT-Clone
 - Unity version: Unity 6000.2.15f1
 - Active game object:
-  - Name: Tilemap_Exit
+  - Name: LV_1(Clone)
   - Tag: Untagged
-  - Layer: Wall
+  - Layer: Default
 <!-- UNITY CODE ASSIST INSTRUCTIONS END -->

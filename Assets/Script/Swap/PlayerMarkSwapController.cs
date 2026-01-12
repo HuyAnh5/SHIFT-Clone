@@ -20,7 +20,7 @@ public class PlayerMarkSwapController : MonoBehaviour
     [SerializeField] private LayerMask solidMask; // dùng cùng layer với ground/wall nếu muốn check kẹt
 
     [Header("Refs")]
-    [SerializeField] private PlayerSquareController playerController;
+    [SerializeField] private PlayerController playerController;
     [SerializeField] private CameraShake2D cameraShake;
 
     private Rigidbody2D rb;
@@ -37,7 +37,7 @@ public class PlayerMarkSwapController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         col = GetComponent<Collider2D>();
 
-        if (playerController == null) playerController = GetComponent<PlayerSquareController>();
+        if (playerController == null) playerController = GetComponent<PlayerController>();
         if (cameraShake == null && Camera.main != null)
             cameraShake = Camera.main.GetComponent<CameraShake2D>();
     }

@@ -2196,7 +2196,7 @@ MonoBehaviour:
   rotateWhenWorldIs: 1
   rescanTilesOnEnable: 1
   playerTag: Player
-  spikeColorInBlackWorld: {r: 0, g: 0, b: 0, a: 1}
+  spikeColorInBlackWorld: {r: 1, g: 1, b: 1, a: 1}
   spikeColorInWhiteWorld: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &9156932727016847233
 GameObject:

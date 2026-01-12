@@ -908,26 +908,6 @@ Tilemap:
       m_TileObjectToInstantiateIndex: 65535
       dummyAlignment: 0
       m_AllTileFlags: 1073741825
-  - first: {x: 9, y: -3, z: 0}
-    second:
-      serializedVersion: 2
-      m_TileIndex: 0
-      m_TileSpriteIndex: 0
-      m_TileMatrixIndex: 0
-      m_TileColorIndex: 0
-      m_TileObjectToInstantiateIndex: 65535
-      dummyAlignment: 0
-      m_AllTileFlags: 1073741825
-  - first: {x: 10, y: -3, z: 0}
-    second:
-      serializedVersion: 2
-      m_TileIndex: 0
-      m_TileSpriteIndex: 0
-      m_TileMatrixIndex: 0
-      m_TileColorIndex: 0
-      m_TileObjectToInstantiateIndex: 65535
-      dummyAlignment: 0
-      m_AllTileFlags: 1073741825
   - first: {x: 11, y: -3, z: 0}
     second:
       serializedVersion: 2
@@ -1460,17 +1440,17 @@ Tilemap:
       m_AllTileFlags: 1073741825
   m_AnimatedTiles: {}
   m_TileAssetArray:
-  - m_RefCount: 72
+  - m_RefCount: 70
     m_Data: {fileID: 11400000, guid: 7454303380d060e489c24c82c5e8dec4, type: 2}
   - m_RefCount: 7
     m_Data: {fileID: 11400000, guid: b3a9c659d987d674da2d5138620b9dbe, type: 2}
   m_TileSpriteArray:
-  - m_RefCount: 72
+  - m_RefCount: 70
     m_Data: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
   - m_RefCount: 7
     m_Data: {fileID: 4457835537561387818, guid: 0fae88493c6a91a4ba97fbbfa13cf319, type: 3}
   m_TileMatrixArray:
-  - m_RefCount: 79
+  - m_RefCount: 77
     m_Data:
       e00: 1
       e01: 0
@@ -1489,7 +1469,7 @@ Tilemap:
       e32: 0
       e33: 1
   m_TileColorArray:
-  - m_RefCount: 72
+  - m_RefCount: 70
     m_Data: {r: 0.754717, g: 0.754717, b: 0.754717, a: 1}
   - m_RefCount: 7
     m_Data: {r: 1, g: 1, b: 1, a: 1}
@@ -1680,8 +1660,12 @@ CompositeCollider2D:
     m_ColliderPaths:
     - - X: 120000000
         Y: -20000000
-      - X: 90000000
+      - X: 110000000
         Y: -20000000
+      - X: 110000000
+        Y: -30000000
+      - X: 90000000
+        Y: -30000000
       - X: 90000000
         Y: -10000000
       - X: 70000000
@@ -1722,7 +1706,9 @@ CompositeCollider2D:
     m_Paths:
     - - {x: 11.99997, y: -5}
       - {x: 11.99997, y: -2}
-      - {x: 9, y: -1.9999707}
+      - {x: 11, y: -2.0000293}
+      - {x: 10.99997, y: -3}
+      - {x: 9, y: -2.9999707}
       - {x: 8.99997, y: -1}
       - {x: 7, y: -0.9999706}
       - {x: 7.0000296, y: 1}
@@ -2180,7 +2166,7 @@ MonoBehaviour:
   rotateWhenWorldIs: 1
   rescanTilesOnEnable: 1
   playerTag: Player
-  spikeColorInBlackWorld: {r: 0, g: 0, b: 0, a: 1}
+  spikeColorInBlackWorld: {r: 1, g: 1, b: 1, a: 1}
   spikeColorInWhiteWorld: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &9156932727016847233
 GameObject:

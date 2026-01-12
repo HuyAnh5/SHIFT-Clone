@@ -19,6 +19,21 @@ public class SwapBlockSpawnerFromTilemap : MonoBehaviour
     [SerializeField] private bool hideMarkerRenderers = true;
     [SerializeField] private bool clearMarkerTilesAfterSpawn = true;
 
+    [Header("Auto clear solids under swap blocks")]
+    [Tooltip("Nếu bật: cell nào có swap marker thì sẽ xoá tile ở các tilemap solid (để swap block không bị kẹt).")]
+    [SerializeField] private bool clearSolidsUnderSwapBlocks = true;
+
+    [Tooltip("Nếu bật: xoá ở CẢ 2 world tilemap (đúng theo concept 'ở world kia là khoảng trống').")]
+    [SerializeField] private bool clearInBothWorlds = true;
+
+    [Tooltip("Nếu bật: cũng xoá tile ở Wall tilemap tại cell đó.")]
+    [SerializeField] private bool clearWallToo = true;
+
+    [Header("Solid Tilemaps to clear (optional, auto-find by name if null)")]
+    [SerializeField] private Tilemap solidBlack;
+    [SerializeField] private Tilemap solidWhite;
+    [SerializeField] private Tilemap wallTilemap;
+
     private readonly List<GameObject> spawned = new();
     private Grid runtimeGrid;
 
@@ -26,7 +41,7 @@ public class SwapBlockSpawnerFromTilemap : MonoBehaviour
     {
         if (spawnParent == null) spawnParent = transform;
 
-        // auto-find theo tên nếu chưa kéo ref
+        // auto-find marker theo tên nếu chưa kéo ref
         if (markerBlack == null || markerWhite == null)
         {
             var tms = GetComponentsInChildren<Tilemap>(true);
@@ -36,6 +51,23 @@ public class SwapBlockSpawnerFromTilemap : MonoBehaviour
                     markerBlack = tm;
                 if (markerWhite == null && tm.name.Contains("SwapMarker_White"))
                     markerWhite = tm;
+            }
+        }
+
+        // auto-find solids theo tên nếu chưa kéo ref
+        if (solidBlack == null || solidWhite == null || wallTilemap == null)
+        {
+            var tms = GetComponentsInChildren<Tilemap>(true);
+            foreach (var tm in tms)
+            {
+                if (solidBlack == null && (tm.name.Contains("WorldBlack") || tm.name.Contains("Tilemap_Black")))
+                    solidBlack = tm;
+
+                if (solidWhite == null && (tm.name.Contains("WorldWhite") || tm.name.Contains("Tilemap_White")))
+                    solidWhite = tm;
+
+                if (wallTilemap == null && tm.name.Contains("Wall"))
+                    wallTilemap = tm;
             }
         }
 
@@ -53,8 +85,8 @@ public class SwapBlockSpawnerFromTilemap : MonoBehaviour
             if (spawned[i] != null) Destroy(spawned[i]);
         spawned.Clear();
 
-        SpawnFrom(markerBlack, prefabBlack);
-        SpawnFrom(markerWhite, prefabWhite);
+        SpawnFrom(markerBlack, prefabBlack, WorldState.Black);
+        SpawnFrom(markerWhite, prefabWhite, WorldState.White);
 
         if (hideMarkerRenderers)
         {
@@ -69,7 +101,7 @@ public class SwapBlockSpawnerFromTilemap : MonoBehaviour
         }
     }
 
-    private void SpawnFrom(Tilemap marker, SwapBlock2D prefab)
+    private void SpawnFrom(Tilemap marker, SwapBlock2D prefab, WorldState ownerWorld)
     {
         if (marker == null || prefab == null) return;
 
@@ -83,11 +115,44 @@ public class SwapBlockSpawnerFromTilemap : MonoBehaviour
                 if (!marker.HasTile(cell)) continue;
 
                 Vector3 worldPos = marker.GetCellCenterWorld(cell);
+
+                if (clearSolidsUnderSwapBlocks)
+                    ClearSolidsAt(worldPos, ownerWorld);
+
                 var inst = Instantiate(prefab, worldPos, Quaternion.identity, spawnParent);
                 inst.Initialize(runtimeGrid);
-
                 spawned.Add(inst.gameObject);
             }
+    }
+
+    private void ClearSolidsAt(Vector3 worldPos, WorldState ownerWorld)
+    {
+        // theo concept: swap block chiếm cell => ở world kia cũng phải là khoảng trống
+        if (clearInBothWorlds)
+        {
+            ClearTileAt(solidBlack, worldPos);
+            ClearTileAt(solidWhite, worldPos);
+        }
+        else
+        {
+            // chỉ clear world của chính nó
+            if (ownerWorld == WorldState.Black) ClearTileAt(solidBlack, worldPos);
+            if (ownerWorld == WorldState.White) ClearTileAt(solidWhite, worldPos);
+        }
+
+        if (clearWallToo)
+            ClearTileAt(wallTilemap, worldPos);
+    }
+
+    private void ClearTileAt(Tilemap tm, Vector3 worldPos)
+    {
+        if (tm == null) return;
+        Vector3Int c = tm.WorldToCell(worldPos);
+        if (tm.HasTile(c))
+        {
+            tm.SetTile(c, null);
+            tm.RefreshTile(c);
+        }
     }
 
     private void HideRenderer(Tilemap tm)

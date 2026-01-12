@@ -115,5 +115,5 @@ MonoBehaviour:
   bulletPrefab: {fileID: 9162401645894900548, guid: 56f36982ad2dde045a60aa873d4446e8, type: 3}
   spawnOffset: {x: 0.5, y: 0}
   shootImmediately: 1
-  debugLogs: 1
-  debugRays: 1
+  debugLogs: 0
+  debugRays: 0

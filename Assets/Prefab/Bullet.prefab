@@ -170,4 +170,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Bullet2D
   lifeTime: 1
   playerTag: Player
-  debugLogs: 1
+  debugLogs: 0
