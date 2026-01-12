@@ -324,7 +324,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &4620322676484482267
 Transform:
   m_ObjectHideFlags: 0
@@ -1976,6 +1976,7 @@ GameObject:
   - component: {fileID: 1848051082073484199}
   - component: {fileID: 1325156260651763619}
   - component: {fileID: 2980587185957544927}
+  - component: {fileID: 8270177891603225042}
   m_Layer: 0
   m_Name: Tilemap_Gravity
   m_TagString: Untagged
@@ -2277,6 +2278,19 @@ CompositeCollider2D:
   m_OffsetDistance: 0.00005
   m_UseDelaunayMesh: 0
   m_CompositeGameObject: {fileID: 3051677092213437092}
+--- !u!114 &8270177891603225042
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3051677092213437092}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fade798f6bd84ed418680dd456053db3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GravityFlipTrigger
+  oneShot: 1
 --- !u!1 &3898038846166446462
 GameObject:
   m_ObjectHideFlags: 0

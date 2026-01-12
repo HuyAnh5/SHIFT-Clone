@@ -78,6 +78,8 @@ public class PlayerController : MonoBehaviour
     private bool shifting;
     private Tween shiftTween;
 
+    private bool controlsInverted;
+
     private float GravitySign => Mathf.Sign(rb.gravityScale == 0 ? 1f : rb.gravityScale);
 
     private void Awake()
@@ -119,15 +121,19 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (shifting) return;
-
         float x = Input.GetAxisRaw("Horizontal");
 
-        // camera xoay 180 => đảo input để “trái vẫn là trái theo màn hình”
-        if (WorldShiftManager.I != null && WorldShiftManager.I.IsViewFlipped)
-            x *= -1f;
+        // ƯU TIÊN theo camera state thật (cả Shift + GravityTrigger)
+        bool viewFlipped = (CameraFlip2D.I != null) && CameraFlip2D.I.IsViewFlipped;
+
+        // fallback nếu bạn vẫn dùng flag cũ ở WorldShiftManager
+        if (!viewFlipped && WorldShiftManager.I != null)
+            viewFlipped = WorldShiftManager.I.IsViewFlipped;
+
+        if (viewFlipped) x *= -1f;
 
         rb.linearVelocity = new Vector2(x * moveSpeed, rb.linearVelocity.y);
+
     }
 
     private void Jump()
@@ -426,6 +432,16 @@ public class PlayerController : MonoBehaviour
 
         box.isTrigger = false;
         rb.bodyType = beforeBodyType;
+    }
+
+    public void InvertControls(bool state)
+    {
+        controlsInverted = state;
+    }
+
+    public void FlipGravity()
+    {
+        rb.gravityScale *= -1f;
     }
 
     public bool IsShifting => shifting;
