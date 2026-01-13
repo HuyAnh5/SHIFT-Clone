@@ -8,13 +8,12 @@ public class CameraFlip2D : MonoBehaviour
 
     public static CameraFlip2D I { get; private set; }
 
-    // Parity tách đôi:
-    // - worldParity: do ShiftWorld (Black/White)
-    // - localParity: do GravityFlipTrigger (same-world)
-    private bool worldParity;
-    private bool localParity;
+    // worldFlip: giống logic cũ (White => flipped)
+    private bool worldFlip;
+    // extraFlip: do GravityFlipTrigger (same-world)
+    private bool extraFlip;
 
-    public bool IsViewFlipped => worldParity ^ localParity;
+    public bool IsViewFlipped => worldFlip ^ extraFlip;
 
     private Tween rotateTween;
 
@@ -31,37 +30,35 @@ public class CameraFlip2D : MonoBehaviour
     private void OnDisable()
     {
         WorldShiftManager.OnWorldChanged -= HandleWorldChanged;
-
         if (I == this) I = null;
     }
 
     private void Start()
     {
-        // Sync theo world hiện tại (để vào level đã đúng hướng)
         if (WorldShiftManager.I != null)
             HandleWorldChanged(WorldShiftManager.I.SolidWorld);
         else
-            ApplyRotation(); // fallback
+            ApplyRotation();
     }
 
     private void HandleWorldChanged(WorldState solidWorld)
     {
-        // Base parity theo world (giữ behavior cũ của bạn)
-        worldParity = (solidWorld == WorldState.White);
+        // giữ convention hiện tại: White => camera flipped
+        worldFlip = (solidWorld == WorldState.White);
         ApplyRotation();
     }
 
-    // ==== API cho GravityFlipTrigger (không đổi world) ====
-    public void ToggleLocalFlip()
+    // ===== API cho GravityFlipTrigger =====
+    public void ToggleExtraFlip()
     {
-        localParity = !localParity;
+        extraFlip = !extraFlip;
         ApplyRotation();
     }
 
-    public void ResetLocalFlip()
+    public void ResetExtraFlip()
     {
-        if (!localParity) return;
-        localParity = false;
+        if (!extraFlip) return;
+        extraFlip = false;
         ApplyRotation();
     }
 

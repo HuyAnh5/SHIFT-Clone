@@ -44,10 +44,10 @@ public class PlayerMarkSwapController : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(markKey))
+        if (Input.GetKeyDown(markKey) || MobileUIInput.ConsumeMarkDown())
             TryMarkToggle();
 
-        if (Input.GetKeyDown(swapKey))
+        if (Input.GetKeyDown(swapKey) || MobileUIInput.ConsumeSwapDown())
             TrySwap();
     }
 
@@ -185,6 +185,18 @@ public class PlayerMarkSwapController : MonoBehaviour
         Vector2 checkCenter = destPos + offset;
         var hit = Physics2D.OverlapBox(checkCenter, size * 0.95f, 0f, solidMask);
         return hit == null;
+    }
+
+    // UI gọi khi bấm nút Mark
+    public void UI_MarkToggle()
+    {
+        TryMarkToggle();
+    }
+
+    // UI gọi khi bấm nút Swap (hoặc Action khi airborne)
+    public void UI_Swap()
+    {
+        TrySwap();
     }
 
     private static int WorldIndex(WorldState w) => (w == WorldState.Black) ? 0 : 1;

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-public class EnemyTilemapSpawner : MonoBehaviour
+public class TurretTilemapSpawner : MonoBehaviour
 {
     [SerializeField] private Tilemap enemyTilemap;
     [SerializeField] private TileBase enemyLeftTile;

@@ -1,27 +1,39 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 [RequireComponent(typeof(Collider2D))]
 public class GravityFlipTrigger : MonoBehaviour
 {
+    private readonly HashSet<Collider2D> inside = new();
+
     private void Reset()
     {
-        // đảm bảo collider là trigger
         var c = GetComponent<Collider2D>();
-        if (c != null) c.isTrigger = true;
+        if (c) c.isTrigger = true;
     }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        PlayerController player = other.GetComponent<PlayerController>();
+        if (inside.Contains(other)) return;
+
+        var player = other.GetComponent<PlayerController>();
         if (player == null) return;
 
-        // 1) Flip gravity (same-world)
+        inside.Add(other);
+
+        // 1) đảo gravity
         player.FlipGravity();
 
-        // 2) Flip camera view giống Shift (nhưng không đổi world)
+        // 2) đảo view (giống Shift) nhưng là "extra flip"
         if (CameraFlip2D.I != null)
-            CameraFlip2D.I.ToggleLocalFlip();
+            CameraFlip2D.I.ToggleExtraFlip();
         else
             Debug.LogWarning("GravityFlipTrigger: CameraFlip2D not found");
+    }
+
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        if (inside.Contains(other))
+            inside.Remove(other);
     }
 }

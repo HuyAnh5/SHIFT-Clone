@@ -1,4 +1,4 @@
-using UnityEngine;
+Ôªøusing UnityEngine;
 
 public class LevelManager : MonoBehaviour
 {
@@ -73,7 +73,7 @@ public class LevelManager : MonoBehaviour
         {
             playerRb.linearVelocity = Vector2.zero;
             playerRb.angularVelocity = 0f;
-            playerRb.gravityScale = Mathf.Abs(playerDefaultGravity); // reset v? gravity ìbÏnh th??ngî
+            playerRb.gravityScale = Mathf.Abs(playerDefaultGravity); // reset v? gravity ‚Äúb√¨nh th??ng‚Äù
         }
     }
 
@@ -89,5 +89,10 @@ public class LevelManager : MonoBehaviour
     {
         if (WorldShiftManager.I != null)
             WorldShiftManager.I.SetWorld(startWorld);
+
+        // reset extra flip (gravity-trigger) v·ªÅ 0
+        if (CameraFlip2D.I != null)
+            CameraFlip2D.I.ResetExtraFlip();
     }
+
 }

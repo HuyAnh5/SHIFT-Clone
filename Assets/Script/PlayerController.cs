@@ -98,43 +98,49 @@ public class PlayerController : MonoBehaviour
 
         if (cd > 0f) cd -= Time.deltaTime;
 
-        if (!shifting && cd <= 0f && Input.GetKeyDown(shiftKey))
+        // SHIFT
+        if (!shifting && cd <= 0f && (Input.GetKeyDown(shiftKey) || MobileUIInput.ConsumeShiftDown()))
+            TryStartShift();
+
+        // JUMP
+        if (!shifting && (Input.GetButtonDown("Jump") || MobileUIInput.ConsumeJumpDown()) && IsGrounded())
+            Jump();
+
+    }
+
+
+    private void FixedUpdate()
+    {
+        // ưu tiên mobile nếu bạn có set MobileUIInput.Horizontal (MoveZone)
+        float xMobile = MobileUIInput.Horizontal;
+        float x = Mathf.Abs(xMobile) > 0.01f ? xMobile : Input.GetAxisRaw("Horizontal");
+
+        // đảo input theo camera state (bao gồm Shift + GravityTrigger)
+        if (CameraFlip2D.I != null && CameraFlip2D.I.IsViewFlipped)
+            x *= -1f;
+
+        rb.linearVelocity = new Vector2(x * moveSpeed, rb.linearVelocity.y);
+    }
+
+    private void TryStartShift()
+    {
+        if (shifting || cd > 0f) return;
+
+        if (!requireGroundedToShift)
         {
-            if (!requireGroundedToShift)
+            if (!(blockShiftWhenStandingOnWall && IsStandingOnWall()))
+                DoShift();
+        }
+        else
+        {
+            if (CanStartShiftFromEdge())
             {
                 if (!(blockShiftWhenStandingOnWall && IsStandingOnWall()))
                     DoShift();
             }
-            else
-            {
-                if (CanStartShiftFromEdge())
-                {
-                    if (!(blockShiftWhenStandingOnWall && IsStandingOnWall()))
-                        DoShift();
-                }
-            }
         }
-
-        if (!shifting && Input.GetButtonDown("Jump") && IsGrounded())
-            Jump();
     }
 
-    private void FixedUpdate()
-    {
-        float x = Input.GetAxisRaw("Horizontal");
-
-        // ƯU TIÊN theo camera state thật (cả Shift + GravityTrigger)
-        bool viewFlipped = (CameraFlip2D.I != null) && CameraFlip2D.I.IsViewFlipped;
-
-        // fallback nếu bạn vẫn dùng flag cũ ở WorldShiftManager
-        if (!viewFlipped && WorldShiftManager.I != null)
-            viewFlipped = WorldShiftManager.I.IsViewFlipped;
-
-        if (viewFlipped) x *= -1f;
-
-        rb.linearVelocity = new Vector2(x * moveSpeed, rb.linearVelocity.y);
-
-    }
 
     private void Jump()
     {
@@ -442,6 +448,19 @@ public class PlayerController : MonoBehaviour
     public void FlipGravity()
     {
         rb.gravityScale *= -1f;
+    }
+
+    // UI gọi khi bấm nút Jump
+    public void UI_Jump()
+    {
+        if (shifting) return;
+        if (IsGrounded()) Jump();
+    }
+
+    // UI gọi khi bấm nút Shift (hoặc Action khi grounded)
+    public void UI_Shift()
+    {
+        TryStartShift();
     }
 
     public bool IsShifting => shifting;
