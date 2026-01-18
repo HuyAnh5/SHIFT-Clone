@@ -6,6 +6,12 @@ public enum WorldState { Black, White }
 public class WorldShiftManager : MonoBehaviour
 {
     public static WorldShiftManager I { get; private set; }
+    /// <summary>
+    /// Fired BEFORE any world-specific objects toggle their colliders/renderers.
+    /// Use this to snapshot occupancy/latches reliably (prevents 1-frame miss when SHIFT disables colliders).
+    /// Args: fromWorld, toWorld
+    /// </summary>
+    public static event Action<WorldState, WorldState> OnPreWorldChange;
     public static event Action<WorldState> OnWorldChanged;
 
     [SerializeField] private WorldState startSolidWorld = WorldState.White;
@@ -32,14 +38,22 @@ public class WorldShiftManager : MonoBehaviour
 
     public void Toggle()
     {
-        SolidWorld = (SolidWorld == WorldState.Black) ? WorldState.White : WorldState.Black;
+        var from = SolidWorld;
+        var to = (SolidWorld == WorldState.Black) ? WorldState.White : WorldState.Black;
+
+        OnPreWorldChange?.Invoke(from, to);
+        SolidWorld = to;
         OnWorldChanged?.Invoke(SolidWorld);
     }
 
     public void SetWorld(WorldState world)
     {
         if (SolidWorld == world) return;
-        SolidWorld = world;
+        var from = SolidWorld;
+        var to = world;
+
+        OnPreWorldChange?.Invoke(from, to);
+        SolidWorld = to;
         OnWorldChanged?.Invoke(SolidWorld);
     }
 

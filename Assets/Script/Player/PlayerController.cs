@@ -11,6 +11,13 @@ public class PlayerController : MonoBehaviour
     [Header("Jump")]
     [SerializeField] private float jumpForce = 14f;
 
+    [Header("Celeste Feel - Input Forgiveness")]
+    [Tooltip("Rời mép vẫn nhảy được trong khoảng thời gian này.")]
+    [SerializeField] private float coyoteTime = 0.10f;
+
+    [Tooltip("Bấm nhảy sớm: game giữ lệnh trong khoảng thời gian này.")]
+    [SerializeField] private float jumpBufferTime = 0.10f;
+
     [Header("Ground Check")]
     [SerializeField] private LayerMask groundMask;
     [SerializeField] private float groundCheckExtra = 0.06f;
@@ -71,6 +78,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private LayerMask wallMask;
     [SerializeField] private bool blockShiftWhenStandingOnWall = true;
 
+    [SerializeField, Min(0f)] private float colliderEdgeRadius = 0.05f;
+
     private Rigidbody2D rb;
     private BoxCollider2D box;
 
@@ -80,12 +89,17 @@ public class PlayerController : MonoBehaviour
 
     private bool controlsInverted;
 
+    // ===== NEW: Coyote + Buffer runtime timers =====
+    private float coyoteTimer;
+    private float jumpBufferTimer;
+
     private float GravitySign => Mathf.Sign(rb.gravityScale == 0 ? 1f : rb.gravityScale);
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         box = GetComponent<BoxCollider2D>();
+        box.edgeRadius = colliderEdgeRadius;
         rb.freezeRotation = true;
 
         if (solidMask.value == 0) solidMask = groundMask;
@@ -93,8 +107,13 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.R) && !shifting && LevelManager.I != null)
+        // Reload luôn được phép, kể cả đang shifting (đã cancel shift trước khi reload)
+        if (Input.GetKeyDown(KeyCode.R) && LevelManager.I != null)
+        {
+            ForceCancelShiftForReload();
             LevelManager.I.ReloadCurrentLevel();
+            return;
+        }
 
         if (cd > 0f) cd -= Time.deltaTime;
 
@@ -102,10 +121,34 @@ public class PlayerController : MonoBehaviour
         if (!shifting && cd <= 0f && (Input.GetKeyDown(shiftKey) || MobileUIInput.ConsumeShiftDown()))
             TryStartShift();
 
-        // JUMP
-        if (!shifting && (Input.GetButtonDown("Jump") || MobileUIInput.ConsumeJumpDown()) && IsGrounded())
-            Jump();
+        // nếu shift vừa bắt đầu trong frame này -> clear jump timers và out luôn
+        if (shifting)
+        {
+            coyoteTimer = 0f;
+            jumpBufferTimer = 0f;
+            return;
+        }
 
+        // ===== Coyote Time timer =====
+        bool groundedNow = IsGrounded();
+        if (groundedNow) coyoteTimer = coyoteTime;
+        else coyoteTimer = Mathf.Max(0f, coyoteTimer - Time.deltaTime);
+
+        // ===== Jump Buffer timer =====
+        if (jumpBufferTimer > 0f)
+            jumpBufferTimer = Mathf.Max(0f, jumpBufferTimer - Time.deltaTime);
+
+        // ===== Register jump input into buffer (desktop + mobile) =====
+        if (Input.GetButtonDown("Jump") || MobileUIInput.ConsumeJumpDown())
+            jumpBufferTimer = jumpBufferTime;
+
+        // ===== Consume buffered jump if allowed =====
+        if (jumpBufferTimer > 0f && coyoteTimer > 0f)
+        {
+            Jump();
+            jumpBufferTimer = 0f;
+            coyoteTimer = 0f;
+        }
     }
 
 
@@ -117,6 +160,10 @@ public class PlayerController : MonoBehaviour
 
         // đảo input theo camera state (bao gồm Shift + GravityTrigger)
         if (CameraFlip2D.I != null && CameraFlip2D.I.IsViewFlipped)
+            x *= -1f;
+
+        // nếu bạn có cơ chế invert riêng (GravityTrigger), giữ lại cho an toàn
+        if (controlsInverted)
             x *= -1f;
 
         rb.linearVelocity = new Vector2(x * moveSpeed, rb.linearVelocity.y);
@@ -141,7 +188,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-
     private void Jump()
     {
         rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
@@ -151,6 +197,10 @@ public class PlayerController : MonoBehaviour
     private void DoShift()
     {
         if (WorldShiftManager.I == null) return;
+
+        // NEW: clear buffer/coyote để tránh "shift xong tự nhảy"
+        coyoteTimer = 0f;
+        jumpBufferTimer = 0f;
 
         shifting = true;
         cd = shiftCooldown;
@@ -253,6 +303,26 @@ public class PlayerController : MonoBehaviour
         }
 
         return false;
+    }
+
+    public void ForceCancelShiftForReload()
+    {
+        // Dừng tween SHIFT để không bị OnComplete chạy "trễ" sau khi reload
+        if (shiftTween != null && shiftTween.IsActive())
+            shiftTween.Kill(false);
+
+        // Dừng coroutine FinishShift nếu đang chạy
+        StopAllCoroutines();
+
+        // Trả player về state “bình thường” để không bị kẹt kinematic/trigger
+        shifting = false;
+        cd = 0f;
+
+        box.isTrigger = false;
+        rb.bodyType = RigidbodyType2D.Dynamic;
+
+        rb.linearVelocity = Vector2.zero;
+        rb.angularVelocity = 0f;
     }
 
     private float GetGroundSupportFraction(int rays, out int leftHits, out int rightHits)
@@ -367,7 +437,7 @@ public class PlayerController : MonoBehaviour
             float penetration = -d.distance;
             if (penetration <= stuckPenetrationEpsilon) continue;
 
-            // QUAN TRỌNG: normal từ A->B, muốn đẩy A ra khỏi B => dùng -normal
+            // normal từ A->B, muốn đẩy A ra khỏi B => dùng -normal
             pushOut += (-d.normal) * (penetration + resolveSkin);
             any = true;
         }
@@ -450,11 +520,11 @@ public class PlayerController : MonoBehaviour
         rb.gravityScale *= -1f;
     }
 
-    // UI gọi khi bấm nút Jump
+    // UI gọi khi bấm nút Jump -> NEW: đưa vào buffer thay vì nhảy ngay
     public void UI_Jump()
     {
         if (shifting) return;
-        if (IsGrounded()) Jump();
+        jumpBufferTimer = jumpBufferTime;
     }
 
     // UI gọi khi bấm nút Shift (hoặc Action khi grounded)

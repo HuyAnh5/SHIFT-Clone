@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Tile_QuantumPass
   m_EditorClassIdentifier: UnityEngine.dll::UnityEngine.Tilemaps.Tile
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 1, g: 0.5264151, b: 0.5264151, a: 1}
+  m_Color: {r: 0.7529412, g: 0.7529412, b: 0.7529412, a: 1}
   m_Transform:
     e00: 1
     e01: 0

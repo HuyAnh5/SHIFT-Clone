@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 
 public class LevelManager : MonoBehaviour
 {
@@ -18,10 +19,11 @@ public class LevelManager : MonoBehaviour
     [SerializeField] private WorldState startWorld = WorldState.White;
     [SerializeField] private float playerDefaultGravity = 5f;
 
-
     private GameObject currentLevelInstance;
     private int currentLevelIndex;
     public int CurrentLevelIndex => currentLevelIndex;
+
+    private Coroutine postLoadCo;
 
     private void Awake()
     {
@@ -60,8 +62,27 @@ public class LevelManager : MonoBehaviour
 
         ResetPlayer(Vector3.zero);
         ResetWorld();
+
+        // IMPORTANT:
+        // Đợi 1 frame rồi force Exit rebuild plate cache để tránh case Destroy(level cũ) chưa kịp
+        // nhưng Exit đã scan transform.root và bị x2 plate.
+        if (postLoadCo != null) StopCoroutine(postLoadCo);
+        postLoadCo = StartCoroutine(PostLoadRefresh());
     }
 
+    private IEnumerator PostLoadRefresh()
+    {
+        yield return null;
+
+        // Refresh tất cả exit trong scene (hoặc chỉ trong currentLevelInstance nếu muốn)
+        var exits = FindObjectsOfType<ExitTilemapTrigger>(true);
+        for (int i = 0; i < exits.Length; i++)
+        {
+            if (exits[i] == null) continue;
+            exits[i].RebuildPlateCache();
+            exits[i].ForceRefresh();
+        }
+    }
 
     private void ResetPlayer(Vector3 pos)
     {
@@ -73,7 +94,7 @@ public class LevelManager : MonoBehaviour
         {
             playerRb.linearVelocity = Vector2.zero;
             playerRb.angularVelocity = 0f;
-            playerRb.gravityScale = Mathf.Abs(playerDefaultGravity); // reset v? gravity “bình th??ng”
+            playerRb.gravityScale = Mathf.Abs(playerDefaultGravity);
         }
     }
 
@@ -90,9 +111,7 @@ public class LevelManager : MonoBehaviour
         if (WorldShiftManager.I != null)
             WorldShiftManager.I.SetWorld(startWorld);
 
-        // reset extra flip (gravity-trigger) về 0
         if (CameraFlip2D.I != null)
             CameraFlip2D.I.ResetExtraFlip();
     }
-
 }

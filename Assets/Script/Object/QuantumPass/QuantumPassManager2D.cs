@@ -61,6 +61,12 @@ public class QuantumPassManager2D : MonoBehaviour
     [SerializeField] private string outlineSortingLayer = "Default";
     [SerializeField] private int outlineSortingOrder = 20;
 
+    [Header("QuantumPass Inside Detection (less sensitive)")]
+    [SerializeField, Range(0.1f, 1f)] private float footProbeWidthFactor = 0.45f; // % width of player collider
+    [SerializeField, Min(0.001f)] private float footProbeHeight = 0.08f;          // world units
+    [SerializeField] private float footProbeYOffset = 0.02f;                      // lift probe slightly above minY
+
+
     // ===== Internal =====
     private readonly List<Group> _groups = new();
     private readonly Dictionary<Vector3Int, int> _cellToGroup = new();
@@ -73,6 +79,7 @@ public class QuantumPassManager2D : MonoBehaviour
     private Material _dashMatInstance;
     private Tween _dashTween;
     private float _dashOffsetX;
+
 
     private static readonly Vector3Int[] N4 =
     {
@@ -146,7 +153,8 @@ public class QuantumPassManager2D : MonoBehaviour
         var activeWorld = (WorldShiftManager.I != null) ? WorldShiftManager.I.SolidWorld : WorldState.Black;
 
         // Overlap only counts for groups that are OPEN in the active world
-        var insideNow = GetOverlappingOpenGroupIds(playerCollider.bounds, activeWorld);
+        Bounds probe = GetFootProbeBounds(playerCollider.bounds);
+        var insideNow = GetOverlappingOpenGroupIds(probe, activeWorld);
 
         float t = Time.time;
         for (int i = 0; i < _groups.Count; i++)
@@ -173,15 +181,50 @@ public class QuantumPassManager2D : MonoBehaviour
                 g.isInside = false;
                 g.countdownActive = true;
                 g.countdownEndTime = t + swapDelay;
+                g.countdownClosingWorld = activeWorld; // <-- NEW: lock world at leave-time
             }
             else if (g.countdownActive && t >= g.countdownEndTime)
             {
                 // Still outside and timeout reached => swap using current active world at swap-time
                 g.countdownActive = false;
-                DoSwap(g);
+                DoSwapFromWorld(g, g.countdownClosingWorld); // <-- use locked world
             }
         }
     }
+
+    private void RefreshInsideFlagsOnly()
+    {
+        if (playerCollider == null || markerTilemap == null || _groups.Count == 0)
+            return;
+
+        var activeWorld = (WorldShiftManager.I != null) ? WorldShiftManager.I.SolidWorld : WorldState.Black;
+
+        // Use FOOT-PROBE bounds (less sensitive than full collider bounds)
+        Bounds probe = GetFootProbeBounds(playerCollider.bounds);
+
+        // Only groups that are OPEN in the active world are considered "inside"
+        var insideNow = GetOverlappingOpenGroupIds(probe, activeWorld);
+
+        for (int i = 0; i < _groups.Count; i++)
+        {
+            _groups[i].isInside = insideNow.Contains(_groups[i].id);
+            // IMPORTANT: do NOT touch countdownActive / countdownEndTime / countdownClosingWorld
+        }
+    }
+
+
+    private Bounds GetFootProbeBounds(Bounds playerBounds)
+    {
+        float w = playerBounds.size.x * footProbeWidthFactor;
+        float h = footProbeHeight;
+
+        // centered at bottom
+        Vector3 center = new Vector3(playerBounds.center.x, playerBounds.min.y + footProbeYOffset + h * 0.5f, 0f);
+        Vector3 size = new Vector3(w, h, 0.1f);
+
+        return new Bounds(center, size);
+    }
+
 
     // ==============================
     // Build groups from marker
@@ -286,15 +329,13 @@ public class QuantumPassManager2D : MonoBehaviour
         }
     }
 
-    private void DoSwap(Group g)
+    private void DoSwapFromWorld(Group g, WorldState closingWorld)
     {
-        var current = (WorldShiftManager.I != null) ? WorldShiftManager.I.SolidWorld : WorldState.Black;
-
-        // Rule: at swap time, current world closes, other opens.
-        g.openWorld = (current == WorldState.Black) ? WorldState.White : WorldState.Black;
-
+        // Rule: closingWorld closes, other opens
+        g.openWorld = (closingWorld == WorldState.Black) ? WorldState.White : WorldState.Black;
         ApplyGroupTiles(g);
     }
+
 
     // ==============================
     // Player overlap (only OPEN groups in active world)
@@ -661,7 +702,7 @@ public class QuantumPassManager2D : MonoBehaviour
         ApplyOutlineColor(solidWorld);
 
         // Avoid accidental "leave" triggered by world flip
-        RefreshInsideStatesNoCountdown();
+        RefreshInsideFlagsOnly();
     }
 
     private void ApplyOutlineColor(WorldState world)
@@ -747,6 +788,8 @@ public class QuantumPassManager2D : MonoBehaviour
         public bool isInside;
         public bool countdownActive;
         public float countdownEndTime;
+
+        public WorldState countdownClosingWorld;
 
         public readonly List<LineRenderer> outlines = new();
 
