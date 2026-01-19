@@ -2,7 +2,7 @@
 - Project name: SHIFT-Clone
 - Unity version: Unity 6000.2.15f1
 - Active game object:
-  - Name: Player
-  - Tag: Player
-  - Layer: Player
+  - Name: Bullet
+  - Tag: Untagged
+  - Layer: Bullet
 <!-- UNITY CODE ASSIST INSTRUCTIONS END -->

@@ -455,10 +455,10 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: -432814189
-  m_SortingLayer: -2
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -855298285791758126, guid: cc5e6cc1aefcdff4c8b33776921171d8, type: 3}
+  m_Sprite: {fileID: -855298285791758126, guid: 8273a8915b6cf72428ad284b8f9a8eb0, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -478,8 +478,8 @@ Transform:
   m_GameObject: {fileID: 294969522}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.07041359, y: 0.046200037, z: 0}
-  m_LocalScale: {x: 16, y: 16, z: 1}
+  m_LocalPosition: {x: 0, y: 9.32, z: 0}
+  m_LocalScale: {x: 10, y: 10, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2056990476}
@@ -497,34 +497,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ParallaxLayer2D
   cam: {fileID: 519420032}
-  materialLayer:
-    root: {fileID: 294969524}
-    sr: {fileID: 294969523}
-    parallaxX: 0.2
-    parallaxY: 0.2
-    lockX: 0
-    lockY: 0
-    loopX: 1
-    startCamPos: {x: 0.35199702, y: 0.23100096, z: -10}
-    startLayerPos: {x: 11.070414, y: 0.046200037, z: 0}
-    unitSizeX: 92.16
-  blueprintLayer:
-    root: {fileID: 0}
-    sr: {fileID: 0}
-    parallaxX: 0.2
-    parallaxY: 0
-    lockX: 0
-    lockY: 1
-    loopX: 1
-    startCamPos: {x: 0, y: 0, z: 0}
-    startLayerPos: {x: 0, y: 0, z: 0}
-    unitSizeX: 0
-  blueprintWorld: 1
-  materialOnAlpha: 1
-  materialOffAlpha: 0.2
-  blueprintOnAlpha: 0.35
-  blueprintOffAlpha: 0
-  fadeDuration: 0.12
+  parallaxX: 0
+  parallaxY: 0
+  lockX: 0
+  lockY: 1
+  loopX: 1
 --- !u!1 &319439592
 GameObject:
   m_ObjectHideFlags: 0
@@ -723,7 +700,7 @@ TilemapRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 985797323
-  m_SortingLayer: -1
+  m_SortingLayer: 3
   m_SortingOrder: 141
   m_ChunkSize: {x: 32, y: 32, z: 32}
   m_ChunkCullingBounds: {x: 0, y: 0, z: 0}
@@ -888,11 +865,11 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: -432814189
-  m_SortingLayer: -2
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
   m_SortingOrder: 2
-  m_Sprite: {fileID: -6470460504253458178, guid: 71d1e8c69dfb4974bb2ebd35a5c6487d, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.6}
+  m_Sprite: {fileID: -6470460504253458178, guid: aca4a6fae42351f41a68ae4e093151a5, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -911,7 +888,7 @@ Transform:
   m_GameObject: {fileID: 370343786}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.21123981, y: 0.13860011, z: 0}
+  m_LocalPosition: {x: -0.0000015199184, y: 4.5099998, z: 0}
   m_LocalScale: {x: 10, y: 10, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -930,34 +907,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ParallaxLayer2D
   cam: {fileID: 519420032}
-  materialLayer:
-    root: {fileID: 370343788}
-    sr: {fileID: 370343787}
-    parallaxX: 0.6
-    parallaxY: 0.6
-    lockX: 0
-    lockY: 0
-    loopX: 0
-    startCamPos: {x: 0.35199702, y: 0.23100096, z: -10}
-    startLayerPos: {x: 11.21124, y: 0.13860011, z: 0}
-    unitSizeX: 57.600002
-  blueprintLayer:
-    root: {fileID: 0}
-    sr: {fileID: 0}
-    parallaxX: 0.2
-    parallaxY: 0
-    lockX: 0
-    lockY: 1
-    loopX: 0
-    startCamPos: {x: 0, y: 0, z: 0}
-    startLayerPos: {x: 0, y: 0, z: 0}
-    unitSizeX: 0
-  blueprintWorld: 1
-  materialOnAlpha: 0.6
-  materialOffAlpha: 0.2
-  blueprintOnAlpha: 0.35
-  blueprintOffAlpha: 0
-  fadeDuration: 0.12
+  parallaxX: 0.4
+  parallaxY: 0.4
+  lockX: 0
+  lockY: 1
+  loopX: 1
 --- !u!1 &399641569
 GameObject:
   m_ObjectHideFlags: 0
@@ -1067,9 +1021,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1571414775}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: -26, y: -50}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &452200081
@@ -1353,7 +1307,7 @@ TilemapRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 985797323
-  m_SortingLayer: -1
+  m_SortingLayer: 3
   m_SortingOrder: 141
   m_ChunkSize: {x: 32, y: 32, z: 32}
   m_ChunkCullingBounds: {x: 0, y: 0, z: 0}
@@ -1639,10 +1593,10 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -1349376449
-  m_SortingLayer: 3
+  m_SortingLayer: 4
   m_SortingOrder: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 1, g: 0.5184791, b: 0.4669811, a: 0}
+  m_Color: {r: 1, g: 0.5184791, b: 0.4669811, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -1661,12 +1615,11 @@ Transform:
   m_GameObject: {fileID: 498821463}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.352, y: 0.231, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.5, y: 0.5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1011536735}
-  - {fileID: 1408623577}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &498821469
@@ -1681,7 +1634,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c17b578ed6f9b8844945582cbfc17e05, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerWorldColor
-  colorInBlackWorld: {r: 1, g: 0.5176471, b: 0.46666667, a: 0}
+  colorInBlackWorld: {r: 1, g: 0.5176471, b: 0.46666667, a: 1}
   colorInWhiteWorld: {r: 1, g: 1, b: 1, a: 1}
 --- !u!114 &498821470
 MonoBehaviour:
@@ -1817,7 +1770,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 7
+  orthographic size: 8
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -1842,7 +1795,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.35199702, y: 0.23100096, z: -10}
+  m_LocalPosition: {x: -0.00006866455, y: 0.0000009536743, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1946,7 +1899,7 @@ MonoBehaviour:
   m_Intensity: 1
   m_LightVolumeIntensity: 1
   m_LightVolumeEnabled: 0
-  m_ApplyToSortingLayers: 000000003f2692af9548a00f21bad82ecb12c23a5100de8793c733e6
+  m_ApplyToSortingLayers: 000000003f2692af9548a00f21bad82ecb12c23a5100de87
   m_LightCookieSprite: {fileID: 0}
   m_DeprecatedPointLightCookieSprite: {fileID: 0}
   m_LightOrder: 0
@@ -2180,7 +2133,7 @@ MonoBehaviour:
   gearIcon: {fileID: 1834908753}
   iconsRow: {fileID: 1571414775}
   iconsGroup: {fileID: 1571414776}
-  duration: 1
+  duration: 0.22
   slideDistance: 260
   ease: 9
   startClosed: 1
@@ -2291,7 +2244,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &735051897
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2643,7 +2596,7 @@ TilemapRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 985797323
-  m_SortingLayer: -1
+  m_SortingLayer: 3
   m_SortingOrder: 141
   m_ChunkSize: {x: 32, y: 32, z: 32}
   m_ChunkCullingBounds: {x: 0, y: 0, z: 0}
@@ -2962,9 +2915,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1571414775}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 234.42, y: -50}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1023246994
@@ -3124,7 +3077,7 @@ MonoBehaviour:
     CustomLookAtTarget: 0
   Lens:
     FieldOfView: 34
-    OrthographicSize: 7
+    OrthographicSize: 8
     NearClipPlane: 0.3
     FarClipPlane: 1000
     Dutch: 0
@@ -3151,7 +3104,7 @@ Transform:
   m_GameObject: {fileID: 1082259730}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.35199702, y: 0.23100096, z: -10}
+  m_LocalPosition: {x: -0.00006866455, y: 0.0000009536743, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -6341,96 +6294,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1408623576
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1408623577}
-  - component: {fileID: 1408623578}
-  m_Layer: 0
-  m_Name: Visual
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1408623577
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1408623576}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.0029, y: 0.0073, z: 0}
-  m_LocalScale: {x: 0.3912231, y: 0.3912231, z: 0.3851}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 498821468}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!212 &1408623578
-SpriteRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1408623576}
-  m_Enabled: 1
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 0
-  m_RayTraceProcedural: 0
-  m_RayTracingAccelStructBuildFlagsOverride: 0
-  m_RayTracingAccelStructBuildFlags: 1
-  m_SmallMeshCulling: 1
-  m_ForceMeshLod: -1
-  m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: -1349376449
-  m_SortingLayer: 3
-  m_SortingOrder: 1
-  m_Sprite: {fileID: -2311659948842064771, guid: 5db2c136a1d89e24ab26ff5524c5de9c, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_FlipX: 0
-  m_FlipY: 0
-  m_DrawMode: 0
-  m_Size: {x: 2.56, y: 2.56}
-  m_AdaptiveModeThreshold: 0.5
-  m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
-  m_MaskInteraction: 0
-  m_SpriteSortPoint: 0
 --- !u!1 &1418915748
 GameObject:
   m_ObjectHideFlags: 0
@@ -6670,6 +6533,115 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1447160578}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1434636734
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1434636736}
+  - component: {fileID: 1434636735}
+  - component: {fileID: 1434636737}
+  m_Layer: 0
+  m_Name: 5_0
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!212 &1434636735
+SpriteRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1434636734}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 0
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 4
+  m_Sprite: {fileID: 4130640169021434097, guid: 7be783b1d6aef7545969870376b4ddc8, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_FlipX: 0
+  m_FlipY: 0
+  m_DrawMode: 0
+  m_Size: {x: 5.76, y: 1.38}
+  m_AdaptiveModeThreshold: 0.5
+  m_SpriteTileMode: 0
+  m_WasSpriteAssigned: 1
+  m_MaskInteraction: 0
+  m_SpriteSortPoint: 0
+--- !u!4 &1434636736
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1434636734}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 10, y: 10, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2056990476}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1434636737
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1434636734}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e10379b89c08a1e4ea938f587df10b37, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ParallaxLayer2D
+  cam: {fileID: 519420032}
+  parallaxX: 0.8
+  parallaxY: 0.8
+  lockX: 0
+  lockY: 1
+  loopX: 1
 --- !u!1 &1447160576
 GameObject:
   m_ObjectHideFlags: 0
@@ -6833,11 +6805,11 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: -432814189
-  m_SortingLayer: -2
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
   m_SortingOrder: 3
-  m_Sprite: {fileID: 1417554306923886684, guid: 12e53039a500fab44b7121601d330354, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 0}
+  m_Sprite: {fileID: -4178046375966092550, guid: 6df3ef3209b8569458df066d58c65c49, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -6856,8 +6828,8 @@ Transform:
   m_GameObject: {fileID: 1475677584}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.17600536, y: 0.11549997, z: 0}
-  m_LocalScale: {x: 5, y: 5, z: 1}
+  m_LocalPosition: {x: 0, y: 6.7599998, z: 0}
+  m_LocalScale: {x: 10, y: 10, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2056990476}
@@ -6875,34 +6847,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ParallaxLayer2D
   cam: {fileID: 519420032}
-  materialLayer:
-    root: {fileID: 1475677586}
-    sr: {fileID: 1475677585}
-    parallaxX: 0.2
-    parallaxY: 0
-    lockX: 0
-    lockY: 0
-    loopX: 0
-    startCamPos: {x: 0.35199702, y: 0.23100096, z: -10}
-    startLayerPos: {x: 11.176005, y: 0.11549997, z: 0}
-    unitSizeX: 62.3
-  blueprintLayer:
-    root: {fileID: 1475677586}
-    sr: {fileID: 1475677585}
-    parallaxX: 0.5
-    parallaxY: 0.5
-    lockX: 0
-    lockY: 0
-    loopX: 0
-    startCamPos: {x: 0.35199702, y: 0.23100096, z: -10}
-    startLayerPos: {x: 11.176005, y: 0.11549997, z: 0}
-    unitSizeX: 62.3
-  blueprintWorld: 1
-  materialOnAlpha: 1
-  materialOffAlpha: 0.2
-  blueprintOnAlpha: 1
-  blueprintOffAlpha: 0
-  fadeDuration: 0.12
+  parallaxX: 0.6
+  parallaxY: 0.6
+  lockX: 0
+  lockY: 1
+  loopX: 1
 --- !u!1 &1571414774
 GameObject:
   m_ObjectHideFlags: 0
@@ -6968,12 +6917,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.HorizontalLayoutGroup
   m_Padding:
-    m_Left: -76
+    m_Left: 0
     m_Right: 0
     m_Top: 0
     m_Bottom: 0
   m_ChildAlignment: 0
-  m_Spacing: 30.21
+  m_Spacing: 0
   m_ChildForceExpandWidth: 1
   m_ChildForceExpandHeight: 1
   m_ChildControlWidth: 0
@@ -7110,7 +7059,7 @@ TilemapRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 985797323
-  m_SortingLayer: -1
+  m_SortingLayer: 3
   m_SortingOrder: 141
   m_ChunkSize: {x: 32, y: 32, z: 32}
   m_ChunkCullingBounds: {x: 0, y: 0, z: 0}
@@ -7259,9 +7208,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1571414775}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 104.21, y: -50}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1701330934
@@ -7866,11 +7815,11 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: -432814189
-  m_SortingLayer: -2
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
   m_SortingOrder: 1
-  m_Sprite: {fileID: 6937817954938267909, guid: 1794791fc67940e408dfe3792d325ddb, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.8}
+  m_Sprite: {fileID: 6937817954938267909, guid: 0e9e04cbed404ad4b9328a710d263da5, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -7889,7 +7838,7 @@ Transform:
   m_GameObject: {fileID: 2053164764}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.14082623, y: 0.092400074, z: 0}
+  m_LocalPosition: {x: -0.0000045746565, y: 0.6000004, z: 0}
   m_LocalScale: {x: 10, y: 10, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -7908,34 +7857,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ParallaxLayer2D
   cam: {fileID: 519420032}
-  materialLayer:
-    root: {fileID: 2053164766}
-    sr: {fileID: 2053164765}
-    parallaxX: 0.4
-    parallaxY: 0.4
-    lockX: 0
-    lockY: 0
-    loopX: 0
-    startCamPos: {x: 0.35199702, y: 0.23100096, z: -10}
-    startLayerPos: {x: 11.140826, y: 0.092400074, z: 0}
-    unitSizeX: 57.600002
-  blueprintLayer:
-    root: {fileID: 0}
-    sr: {fileID: 0}
-    parallaxX: 0.2
-    parallaxY: 0
-    lockX: 0
-    lockY: 1
-    loopX: 0
-    startCamPos: {x: 0, y: 0, z: 0}
-    startLayerPos: {x: 0, y: 0, z: 0}
-    unitSizeX: 0
-  blueprintWorld: 1
-  materialOnAlpha: 0.8
-  materialOffAlpha: 0.2
-  blueprintOnAlpha: 0.35
-  blueprintOffAlpha: 0
-  fadeDuration: 0.12
+  parallaxX: 0.2
+  parallaxY: 0.2
+  lockX: 0
+  lockY: 1
+  loopX: 1
 --- !u!1 &2056990475
 GameObject:
   m_ObjectHideFlags: 0
@@ -7951,7 +7877,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2056990476
 Transform:
   m_ObjectHideFlags: 0
@@ -7961,7 +7887,7 @@ Transform:
   m_GameObject: {fileID: 2056990475}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 11, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -9.32, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -7969,6 +7895,7 @@ Transform:
   - {fileID: 2053164766}
   - {fileID: 370343788}
   - {fileID: 1475677586}
+  - {fileID: 1434636736}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2075334367
@@ -8032,7 +7959,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LevelManager
   resourcesFolder: Levels
   levelPrefix: LV_
-  startLevelIndex: 12
+  startLevelIndex: 8
   levelParent: {fileID: 0}
   player: {fileID: 498821468}
   playerRb: {fileID: 498821466}

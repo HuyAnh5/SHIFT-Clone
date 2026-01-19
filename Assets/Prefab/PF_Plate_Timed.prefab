@@ -76,8 +76,8 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: 985797323
+  m_SortingLayer: 3
   m_SortingOrder: 0
   m_Sprite: {fileID: -4795573259988461060, guid: d89ff0bdc84b92d4e8fdeb3b3b32d673, type: 3}
   m_Color: {r: 0, g: 0.7254902, b: 1, a: 1}
@@ -305,7 +305,9 @@ MonoBehaviour:
   raiseEase: 4
   epsilon: 0.001
   keepSwapBlockConditionAcrossWorlds: 1
-  latchProbeInterval: 0.1
+  heartbeatInterval: 0.1
+  swapLatchClearMissFrames: 3
+  swapLatchClearGraceSeconds: 0.12
   debugPlate: 1
   debugProbeHits: 1
   countdownDuration: 10

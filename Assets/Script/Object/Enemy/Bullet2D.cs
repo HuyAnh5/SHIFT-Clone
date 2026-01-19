@@ -76,14 +76,20 @@ public class Bullet2D : MonoBehaviour
 
         if (other.CompareTag(playerTag))
         {
-            //chạm đạn thì reset màn
-            var scene = SceneManager.GetActiveScene();
-            SceneManager.LoadScene(scene.buildIndex);
+            // reset màn đúng theo LevelManager (không reload scene)
+            if (LevelManager.I != null) LevelManager.I.ReloadCurrentLevel();
+            else
+            {
+                // fallback: nếu không có LevelManager thì mới reload scene
+                var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+                UnityEngine.SceneManagement.SceneManager.LoadScene(scene.buildIndex);
+            }
             return;
         }
 
         Despawn();
     }
+
 
     public void Despawn()
     {

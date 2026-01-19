@@ -38,8 +38,11 @@ TagManager:
   - 
   - 
   m_SortingLayers:
-  - name: UI
-    uniqueID: 2279473233
+  - name: BackGround
+    uniqueID: 3862153107
+    locked: 0
+  - name: hazard
+    uniqueID: 985797323
     locked: 0
   - name: Default
     uniqueID: 0
@@ -50,11 +53,11 @@ TagManager:
   - name: wall
     uniqueID: 785955361
     locked: 0
-  - name: hazard
-    uniqueID: 985797323
-    locked: 0
   - name: player
     uniqueID: 2945590847
+    locked: 0
+  - name: UI
+    uniqueID: 2279473233
     locked: 0
   m_RenderingLayers:
   - Default
