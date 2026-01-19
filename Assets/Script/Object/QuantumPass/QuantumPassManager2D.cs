@@ -80,6 +80,9 @@ public class QuantumPassManager2D : MonoBehaviour
     private Tween _dashTween;
     private float _dashOffsetX;
 
+    [SerializeField] private string playerTag = "Player";
+
+
 
     private static readonly Vector3Int[] N4 =
     {
@@ -748,8 +751,16 @@ public class QuantumPassManager2D : MonoBehaviour
     {
         if (playerCollider == null)
         {
-            var pc = FindObjectOfType<PlayerController>();
-            if (pc != null) playerCollider = pc.GetComponent<Collider2D>();
+            // 1) Ưu tiên tag Player
+            if (!TryAssignPlayerColliderFromTag())
+            {
+                // 2) Fallback cũ: tìm PlayerController
+                var pc = FindObjectOfType<PlayerController>();
+                if (pc != null) playerCollider = pc.GetComponent<Collider2D>();
+            }
+
+            if (playerCollider == null)
+                Debug.LogWarning("[QuantumPass] playerCollider is still null. Assign it manually or ensure Player has tag + collider.");
         }
 
         if (markerTilemap == null || blackSolidFill == null || blackGhostTrigger == null || whiteSolidFill == null || whiteGhostTrigger == null)
@@ -775,6 +786,47 @@ public class QuantumPassManager2D : MonoBehaviour
             if (child != null) outlineRoot = child;
         }
     }
+
+
+    private bool TryAssignPlayerColliderFromTag()
+    {
+        GameObject go = null;
+
+        try
+        {
+            go = GameObject.FindGameObjectWithTag(playerTag);
+        }
+        catch
+        {
+            // Tag chưa tồn tại trong Tag Manager -> FindGameObjectWithTag sẽ throw
+            Debug.LogWarning($"[QuantumPass] Tag '{playerTag}' is missing. Add it in Tag Manager or change playerTag.");
+            return false;
+        }
+
+        if (go == null) return false;
+
+        // Ưu tiên collider NON-trigger (hitbox thật)
+        var cols = go.GetComponentsInChildren<Collider2D>(true);
+        for (int i = 0; i < cols.Length; i++)
+        {
+            if (cols[i] != null && !cols[i].isTrigger)
+            {
+                playerCollider = cols[i];
+                return true;
+            }
+        }
+
+        // Nếu không có non-trigger thì fallback lấy cái đầu tiên (ít khuyến khích)
+        if (cols.Length > 0)
+        {
+            playerCollider = cols[0];
+            Debug.LogWarning("[QuantumPass] Found only trigger colliders on Player. Please use a NON-trigger collider as hitbox.");
+            return true;
+        }
+
+        return false;
+    }
+
 
     // ==============================
     // Data

@@ -1493,6 +1493,9 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 58816
   groundCheckExtra: 0.05
+  clampFallSpeed: 1
+  maxFallSpeed: 22
+  maxRiseSpeed: 35
   shiftKey: 308
   shiftCooldown: 0.12
   shiftAnimDuration: 0.18
@@ -1514,13 +1517,19 @@ MonoBehaviour:
   solidMask:
     serializedVersion: 2
     m_Bits: 25024
-  squashOnShift: 1
-  squashY: 0.35
   wallMask:
     serializedVersion: 2
     m_Bits: 1280
   blockShiftWhenStandingOnWall: 1
   colliderEdgeRadius: 0.02
+  squashOnShift: 1
+  visualRoot: {fileID: 498821468}
+  enableSquashStretch: 1
+  useAirVelocityStretch: 1
+  airBlendSpeed: 14
+  airRiseSpeed: 14
+  airFallSpeed: 18
+  minAirTimeForLand: 0.02
 --- !u!61 &498821465
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -8032,7 +8041,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LevelManager
   resourcesFolder: Levels
   levelPrefix: LV_
-  startLevelIndex: 12
+  startLevelIndex: 15
   levelParent: {fileID: 0}
   player: {fileID: 498821468}
   playerRb: {fileID: 498821466}

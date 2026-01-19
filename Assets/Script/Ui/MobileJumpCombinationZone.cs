@@ -145,14 +145,12 @@ public class MobileJumpCombinationZone : MonoBehaviour,
         // 1) Jump: trigger once per hold (only when grounded)
         if (!jumpTriggeredThisHold && r == Region.Jump)
         {
-            if (player == null || player.IsGroundedNow)
-            {
-                MobileUIInput.TriggerJump();
-                jumpTriggeredThisHold = true;
-                Pulse(Region.Jump);
-            }
+            MobileUIInput.TriggerJump(); // luôn cho vào buffer
+            jumpTriggeredThisHold = true;
+            Pulse(Region.Jump);
             return;
         }
+
 
         // 2) Secondary: only allow ONE of {Action, Mark} per hold (first one wins)
         if (secondaryTriggeredThisHold) return;
