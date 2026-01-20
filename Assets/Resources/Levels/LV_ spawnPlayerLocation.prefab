@@ -2754,33 +2754,33 @@ Tilemap:
     second:
       serializedVersion: 2
       m_TileIndex: 1
-      m_TileSpriteIndex: 1
+      m_TileSpriteIndex: 0
       m_TileMatrixIndex: 0
-      m_TileColorIndex: 1
+      m_TileColorIndex: 0
       m_TileObjectToInstantiateIndex: 65535
       dummyAlignment: 0
-      m_AllTileFlags: 1073741825
+      m_AllTileFlags: 1073741827
   - first: {x: 0, y: -2, z: 0}
     second:
       serializedVersion: 2
       m_TileIndex: 1
-      m_TileSpriteIndex: 1
+      m_TileSpriteIndex: 0
       m_TileMatrixIndex: 0
-      m_TileColorIndex: 1
+      m_TileColorIndex: 0
       m_TileObjectToInstantiateIndex: 65535
       dummyAlignment: 0
-      m_AllTileFlags: 1073741825
+      m_AllTileFlags: 1073741827
   m_AnimatedTiles: {}
   m_TileAssetArray:
   - m_RefCount: 0
     m_Data: {fileID: 0}
   - m_RefCount: 2
-    m_Data: {fileID: 11400000, guid: b3a9c659d987d674da2d5138620b9dbe, type: 2}
+    m_Data: {fileID: 0}
   m_TileSpriteArray:
+  - m_RefCount: 2
+    m_Data: {fileID: 0}
   - m_RefCount: 0
     m_Data: {fileID: 0}
-  - m_RefCount: 2
-    m_Data: {fileID: 4457835537561387818, guid: 0fae88493c6a91a4ba97fbbfa13cf319, type: 3}
   m_TileMatrixArray:
   - m_RefCount: 2
     m_Data:
@@ -2801,10 +2801,10 @@ Tilemap:
       e32: 0
       e33: 1
   m_TileColorArray:
-  - m_RefCount: 0
-    m_Data: {r: NaN, g: NaN, b: NaN, a: NaN}
   - m_RefCount: 2
-    m_Data: {r: 1, g: 1, b: 1, a: 1}
+    m_Data: {r: 0.90768176, g: 0.4802201, b: 0.54479986, a: 1}
+  - m_RefCount: 0
+    m_Data: {r: 4.5e-44, g: 4.5e-44, b: 4.5e-44, a: 4.5e-44}
   m_TileObjectToInstantiateArray: []
   m_AnimationFrameRate: 1
   m_Color: {r: 0, g: 0, b: 0, a: 1}
@@ -3308,6 +3308,12 @@ MonoBehaviour:
   footProbeWidthFactor: 0.45
   footProbeHeight: 0.08
   footProbeYOffset: 0.02
+  outlineA_BlackWorld: {r: 1, g: 1, b: 1, a: 1}
+  outlineA_WhiteWorld: {r: 0, g: 0, b: 0, a: 1}
+  outlineB_UseSolidFillBaseColor: 1
+  outlineB_Custom: {r: 0, g: 0, b: 0, a: 1}
+  outlineB_Alpha: 1
+  dashTilingX: 0.25
   playerTag: Player
 --- !u!114 &8592328852319421922
 MonoBehaviour:

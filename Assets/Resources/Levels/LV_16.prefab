@@ -2724,6 +2724,12 @@ MonoBehaviour:
   footProbeWidthFactor: 0.45
   footProbeHeight: 0.08
   footProbeYOffset: 0.02
+  outlineA_BlackWorld: {r: 1, g: 1, b: 1, a: 1}
+  outlineA_WhiteWorld: {r: 0, g: 0, b: 0, a: 1}
+  outlineB_UseSolidFillBaseColor: 1
+  outlineB_Custom: {r: 0, g: 0, b: 0, a: 1}
+  outlineB_Alpha: 1
+  dashTilingX: 0.25
   playerTag: Player
 --- !u!114 &8592328852319421922
 MonoBehaviour:

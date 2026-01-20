@@ -149,8 +149,17 @@ public class ExitTilemapTrigger : MonoBehaviour
             Debug.LogError("[EXIT] LevelManager.I is NULL");
             return;
         }
+        // SAVE PROGRESS (unlock next level)
+        int current = LevelManager.I.CurrentLevelIndex;
+        int next = current + 1;
 
-        used = true;
+        int unlocked = PlayerPrefs.GetInt("unlocked_level", 1);
+        if (next > unlocked)
+        {
+            PlayerPrefs.SetInt("unlocked_level", next);
+            PlayerPrefs.Save();
+        }
+
         LevelManager.I.LoadNextLevel();
     }
 

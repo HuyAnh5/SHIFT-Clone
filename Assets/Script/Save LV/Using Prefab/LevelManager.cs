@@ -36,8 +36,11 @@ public class LevelManager : MonoBehaviour
 
     private void Start()
     {
-        LoadLevel(startLevelIndex);
+        int idx = PlayerPrefs.GetInt("start_level_index", startLevelIndex);
+        LoadLevel(idx);
     }
+
+
 
     public void LoadNextLevel()
     {
@@ -58,6 +61,10 @@ public class LevelManager : MonoBehaviour
             Destroy(currentLevelInstance);
 
         currentLevelIndex = levelIndex;
+        // REMEMBER CURRENT LEVEL (for Continue / Play)
+        PlayerPrefs.SetInt("start_level_index", currentLevelIndex);
+        PlayerPrefs.Save();
+
         currentLevelInstance = Instantiate(prefab, levelParent);
 
         ResetPlayer(Vector3.zero);

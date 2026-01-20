@@ -73,6 +73,8 @@ public class QuantumPassManager2D : MonoBehaviour
     [SerializeField] private Color outlineB_Custom = Color.black;        // nếu không dùng base color
     [SerializeField, Range(0f, 1f)] private float outlineB_Alpha = 1f;   // set 0 => “B = 0”
 
+    [SerializeField, Range(0.05f, 4f)] private float dashTilingX = 0.25f;
+
 
     // ===== Internal =====
     private readonly List<Group> _groups = new();
@@ -428,6 +430,8 @@ public class QuantumPassManager2D : MonoBehaviour
         // material instance so offset doesn't modify asset
         if (_dashMatInstance != null) Destroy(_dashMatInstance);
         _dashMatInstance = new Material(dashMaterial);
+        _dashMatInstance.mainTextureScale = new Vector2(dashTilingX, 1f);
+
 
         for (int i = 0; i < _groups.Count; i++)
         {

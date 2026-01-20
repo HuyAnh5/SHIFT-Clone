@@ -41,7 +41,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _DashLength: 0.25
+    - _DashLength: 0.75
     - _EnableExternalAlpha: 0
     - _Offset: 0
     - _ZWrite: 0
