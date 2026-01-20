@@ -66,6 +66,13 @@ public class QuantumPassManager2D : MonoBehaviour
     [SerializeField, Min(0.001f)] private float footProbeHeight = 0.08f;          // world units
     [SerializeField] private float footProbeYOffset = 0.02f;                      // lift probe slightly above minY
 
+    [SerializeField] private Color outlineA_BlackWorld = Color.white;
+    [SerializeField] private Color outlineA_WhiteWorld = Color.black;
+
+    [SerializeField] private bool outlineB_UseSolidFillBaseColor = true; // B = “màu gốc khối”
+    [SerializeField] private Color outlineB_Custom = Color.black;        // nếu không dùng base color
+    [SerializeField, Range(0f, 1f)] private float outlineB_Alpha = 1f;   // set 0 => “B = 0”
+
 
     // ===== Internal =====
     private readonly List<Group> _groups = new();
@@ -450,6 +457,9 @@ public class QuantumPassManager2D : MonoBehaviour
 
                 lr.material = _dashMatInstance;
 
+                lr.startColor = Color.white;
+                lr.endColor = Color.white;
+
                 // Convert corner-grid vertices to world points:
                 // corner vertex (x,y) maps to CellToWorld(x,y) as corner on grid.
                 Vector3[] pts = new Vector3[loop.Count];
@@ -479,24 +489,24 @@ public class QuantumPassManager2D : MonoBehaviour
         if (dashScrollSpeed <= 0f) return;
 
         _dashOffsetX = 0f;
-        _dashMatInstance.mainTextureOffset = Vector2.zero;
+        _dashMatInstance.SetFloat("_Offset", 0f);
 
-        // UV offset repeats 0..1 forever. Wrap Mode = Repeat on texture.
         float duration = 1f / dashScrollSpeed; // cycles per second
         _dashTween = DOTween.To(
                 () => _dashOffsetX,
                 v =>
                 {
                     _dashOffsetX = v;
-                    _dashMatInstance.mainTextureOffset = new Vector2(Mathf.Repeat(_dashOffsetX, 1f), 0f);
+                    _dashMatInstance.SetFloat("_Offset", Mathf.Repeat(_dashOffsetX, 1f));
                 },
                 1f,
                 duration
             )
             .SetEase(Ease.Linear)
             .SetLoops(-1, LoopType.Restart)
-            .SetUpdate(true); // keep animating even if Time.timeScale = 0
+            .SetUpdate(true);
     }
+
 
     // Build perimeter edges then chain into loops (corner-grid coords)
     private static List<List<Vector2Int>> BuildPerimeterLoops(HashSet<Vector3Int> cells)
@@ -711,20 +721,33 @@ public class QuantumPassManager2D : MonoBehaviour
     private void ApplyOutlineColor(WorldState world)
     {
         if (!buildOutline) return;
+        if (_dashMatInstance == null) return;
 
-        Color c = (world == WorldState.Black) ? Color.white : Color.black;
-        for (int i = 0; i < _groups.Count; i++)
+        Color a = (world == WorldState.Black) ? outlineA_BlackWorld : outlineA_WhiteWorld;
+
+        Color b;
+        if (outlineB_UseSolidFillBaseColor)
         {
-            var g = _groups[i];
-            for (int k = 0; k < g.outlines.Count; k++)
-            {
-                var lr = g.outlines[k];
-                if (lr == null) continue;
-                lr.startColor = c;
-                lr.endColor = c;
-            }
+            // “màu gốc khối” lấy từ solid fill tilemap của world đó
+            Tilemap src = (world == WorldState.Black) ? blackSolidFill : whiteSolidFill;
+            if (src != null && _baseColors.TryGetValue(src, out var baseC))
+                b = baseC;
+            else
+                b = (world == WorldState.Black) ? Color.black : Color.white;
+
+            b.a = 1f; // normalize alpha
         }
+        else
+        {
+            b = outlineB_Custom;
+        }
+
+        b.a *= outlineB_Alpha; // nếu muốn “0” thì set outlineB_Alpha = 0
+
+        _dashMatInstance.SetColor("_ColorA", a);
+        _dashMatInstance.SetColor("_ColorB", b);
     }
+
 
     private static void SetColliders(Collider2D[] cols, bool enabled)
     {

@@ -1,77 +1,132 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 using DG.Tweening;
 
 [RequireComponent(typeof(Rigidbody2D), typeof(BoxCollider2D))]
 public class PlayerController : MonoBehaviour
 {
-    // =========================================================
-    // Inspector
-    // =========================================================
-
     [Header("Move")]
     [SerializeField] private float moveSpeed = 8f;
-    [SerializeField] private float accel = 90f;          // tăng để responsive hơn
-    [SerializeField] private float decel = 110f;         // giảm để dừng nhanh hơn
+    [SerializeField] private float acceleration = 80f;
+    [SerializeField] private float deceleration = 90f;
 
     [Header("Jump")]
     [SerializeField] private float jumpForce = 14f;
 
     [Header("Celeste Feel - Input Forgiveness")]
+    [Tooltip("Still can jump for this long after leaving ground.")]
     [SerializeField] private float coyoteTime = 0.10f;
+
+    [Tooltip("If jump pressed early, keep it for this long.")]
     [SerializeField] private float jumpBufferTime = 0.10f;
 
-    [Header("Contact Classification")]
-    [Tooltip("Normal phải 'hướng lên' theo gravity tối thiểu bao nhiêu để tính là ground.")]
-    [SerializeField, Range(0.1f, 0.98f)] private float groundNormalThreshold = 0.60f;
+    [Header("Physics / Contact")]
+    [SerializeField] private LayerMask solidMask = ~0;
+    [SerializeField] private LayerMask wallMask = 0;
 
-    [Tooltip("Normal phải 'hướng ngang' tối thiểu bao nhiêu để tính là wall side.")]
-    [SerializeField, Range(0.1f, 0.98f)] private float wallNormalThreshold = 0.60f;
+    [Tooltip("Dot threshold to consider contact as ground (normal vs up relative to gravity).")]
+    [SerializeField, Range(0f, 1f)] private float groundNormalThreshold = 0.55f;
 
-    [Header("Masks")]
-    [Tooltip("Solid để collide (ground + wall).")]
-    [SerializeField] private LayerMask solidMask;
+    [Tooltip("Dot threshold to consider contact as wall (normal vs left/right).")]
+    [SerializeField, Range(0f, 1f)] private float wallNormalThreshold = 0.75f;
 
-    [Tooltip("Wall tilemap (always-solid) để chặn shift khi đứng trên.")]
-    [SerializeField] private LayerMask wallMask;
-
-    [Header("Anti-Tunnel (fall too fast)")]
-    [SerializeField] private bool clampFallSpeed = true;
+    [Header("Clamp Vertical Speed (optional)")]
+    [SerializeField] private bool clampVerticalSpeed = true;
     [SerializeField] private float maxFallSpeed = 22f;
-    [SerializeField] private float maxRiseSpeed = 35f;
-
-    [Header("Collider")]
-    [SerializeField, Min(0f)] private float colliderEdgeRadius = 0.02f;
+    [SerializeField] private float maxRiseSpeed = 40f;
 
     [Header("Shift (core)")]
     [SerializeField] private KeyCode shiftKey = KeyCode.LeftShift;
     [SerializeField] private float shiftCooldown = 0.12f;
+
+    [Tooltip("Use the same duration as CameraFlip2D.flipDuration for best feel.")]
     [SerializeField] private float shiftAnimDuration = 0.18f;
+
+    [Tooltip("Extra push to reliably pass through the platform you stand on.")]
     [SerializeField] private float passExtra = 0.15f;
+
+    [Tooltip("Only allow shift when grounded (with edge-support assist).")]
     [SerializeField] private bool requireGroundedToShift = true;
+
+    [Header("Shift Edge Assist")]
+    [Tooltip("Max overhang fraction allowed to shift. 0.2 means at least 80% supported.")]
+    [SerializeField, Range(0f, 0.49f)] private float maxOverhangFractionToShift = 0.2f;
+
+    [Tooltip("How many rays to test support (more = more stable).")]
+    [SerializeField, Min(3)] private int edgeSupportRays = 5;
+
+    [Tooltip("Ignore a margin near collider edges to avoid grazing hits.")]
+    [SerializeField, Range(0f, 0.2f)] private float edgeRayMargin = 0.04f;
+
+    [Tooltip("Ray extra distance beyond foot.")]
+    [SerializeField] private float groundCheckExtra = 0.06f;
+
+    [Tooltip("If slightly overhanging but within allowed, nudge player inward before shift.")]
+    [SerializeField] private bool nudgeBackBeforeShift = true;
+
+    [SerializeField] private float nudgeStep = 0.02f;
+    [SerializeField] private float nudgeMaxDistance = 0.45f;
+
+    [Header("Shift Stuck Handling")]
+    [Tooltip("If overlap after shift, try resolve push-out first. If fails, rollback world.")]
+    [SerializeField] private bool resolveInsteadOfRollback = true;
+
+    [SerializeField] private bool rollbackIfStuck = true;
+
+    [Tooltip("Wait 1 FixedUpdate before overlap check (tilemap collider toggles may lag).")]
+    [SerializeField] private bool delayOverlapCheckOneFixed = true;
+
+    [SerializeField, Min(1)] private int resolveIterations = 10;
+    [SerializeField] private float resolveMaxStep = 0.35f;
+    [SerializeField] private float resolveSkin = 0.01f;
+
+    [Tooltip("Only consider stuck if penetration bigger than this (avoid contact offset false positives).")]
+    [SerializeField] private float stuckPenetrationEpsilon = 0.02f;
+
+    [Header("Shift Block Rule (Wall always-solid)")]
     [SerializeField] private bool blockShiftWhenStandingOnWall = true;
 
-    [Header("Shift Safety")]
-    [Tooltip("Nếu tween shift bị kill/kẹt, sau thời gian này sẽ tự trả trigger/collider về bình thường.")]
-    [SerializeField] private float shiftFailsafeSeconds = 0.75f;
+    [Header("Failsafe")]
+    [Tooltip("If shift tween never completes (killed/paused), force-finish after this many seconds.")]
+    [SerializeField] private float shiftFailsafeSeconds = 0.9f;
 
-    [Header("Squash & Stretch (visual only)")]
-    [SerializeField] private Transform visualRoot; // child "Visual" chứa Sprite/Animator
+    [Header("Collider")]
+    [SerializeField, Min(0f)] private float colliderEdgeRadius = 0.05f;
+
+    [Header("Visual")]
+    [SerializeField] private Transform visualRoot;
+    [SerializeField] private SpriteRenderer spriteRenderer;
+
+    [Header("Squash / Stretch (Jump / Land)")]
     [SerializeField] private bool enableSquashStretch = true;
 
-    [SerializeField] private float landSquashCooldown = 0.12f;   // chặn spam squash
-    [SerializeField] private float rearmAirTime = 0.08f;         // phải bay liên tục >= thời gian này mới "arm" lại
-    [SerializeField] private float minFallSpeedToCount = 0.5f;   // tránh re-arm do rung rất nhẹ
-    [SerializeField] private float airBlendSpeed = 14f;
+    [SerializeField] private float jumpSquashX = 1.20f;
+    [SerializeField] private float jumpSquashY = 0.80f;
+    [SerializeField] private float jumpStretchX = 0.85f;
+    [SerializeField] private float jumpStretchY = 1.25f;
+    [SerializeField] private float jumpSquashDuration = 0.08f;
+    [SerializeField] private float jumpStretchDuration = 0.10f;
 
+    [SerializeField] private float landSquashX = 1.25f;
+    [SerializeField] private float landSquashY = 0.75f;
+    [SerializeField] private float landDuration = 0.10f;
 
-    private bool landSquashArmed;
-    private float landSquashCd;
+    [SerializeField] private Ease squashEase = Ease.OutQuad;
+    [SerializeField] private Ease stretchEase = Ease.OutQuad;
 
+    [Header("Push Blocking (only dynamic bodies)")]
+    [SerializeField] private bool blockPushingDynamicBodies = true;
 
-    // =========================================================
-    // Runtime
-    // =========================================================
+    private bool dynLeftFixed;
+    private bool dynRightFixed;
+
+    [Header("Land Trigger Gate")]
+    [SerializeField] private float minAirTimeForLand = 0.06f;
+    [SerializeField] private float minFallSpeedForLand = 2.5f;
+    [SerializeField] private float landTriggerCooldown = 0.10f;
+
+    [Header("Optional: Fail Shake")]
+    [SerializeField] private CameraShake2D failShake;
 
     private Rigidbody2D rb;
     private BoxCollider2D box;
@@ -79,78 +134,69 @@ public class PlayerController : MonoBehaviour
     private float cd;
     private bool shifting;
     private Tween shiftTween;
+    private Coroutine finishShiftRoutine;
     private float shiftFailsafeTimer;
 
     private bool controlsInverted;
 
-    // coyote + buffer
+    // Coyote + Buffer runtime
     private float coyoteTimer;
     private float jumpBufferTimer;
 
-    // contacts (FixedUpdate)
+    // Contacts (fixed)
     private bool groundedFixed;
     private bool wallLeftFixed;
     private bool wallRightFixed;
 
-    private readonly ContactPoint2D[] contactBuf = new ContactPoint2D[20];
+    // Land gate runtime (FIX: missing vars)
+    private float airTime;
+    private float lastLandAt = -999f;
+    private bool groundedPrevFixed;
 
-    // squash/stretch
+    // Visual
     private Tween squashTween;
     private Vector3 baseVisualScale;
-    private bool wasGrounded;
-    private float airTime;
 
-    private float GravitySign => Mathf.Sign(rb.gravityScale == 0 ? 1f : rb.gravityScale);
-    private Vector2 GravityDown => (GravitySign > 0f) ? Vector2.down : Vector2.up;   // hướng rơi theo gravity
+    // Shift snapshots (for rollback / failsafe finish)
+    private WorldState shiftBeforeWorld;
+    private float shiftBeforeGravityScale;
+    private Vector2 shiftBeforePos;
+    private RigidbodyType2D shiftBeforeBodyType;
+
+    private float GravitySign => Mathf.Sign(Mathf.Approximately(rb.gravityScale, 0f) ? 1f : rb.gravityScale);
+    private Vector2 GravityDown => (GravitySign > 0f) ? Vector2.down : Vector2.up;
     private Vector2 GravityUp => -GravityDown;
-
-    // =========================================================
-    // Unity
-    // =========================================================
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         box = GetComponent<BoxCollider2D>();
 
-        // masks fallback
-        if (solidMask.value == 0) solidMask = Physics2D.DefaultRaycastLayers;
-
-        // collider safe defaults
-        box.enabled = true;
-        box.isTrigger = false;
-        box.edgeRadius = colliderEdgeRadius;
-
-        // rigidbody safe defaults
-        rb.simulated = true;
-        rb.bodyType = RigidbodyType2D.Dynamic;
         rb.freezeRotation = true;
 
-        // visual
-        if (visualRoot == null)
-        {
-            var v = transform.Find("Visual");
-            visualRoot = v != null ? v : transform;
-        }
-        baseVisualScale = visualRoot.localScale;
-        wasGrounded = false;
-        airTime = 0f;
+        box.edgeRadius = colliderEdgeRadius;
 
-        HardResetShiftState();
+        if (visualRoot == null) visualRoot = transform;
+        baseVisualScale = visualRoot.localScale;
+
+        if (spriteRenderer == null)
+            spriteRenderer = visualRoot.GetComponentInChildren<SpriteRenderer>(true);
+
+        if (failShake == null)
+            failShake = FindAnyObjectByType<CameraShake2D>();
     }
 
     private void OnDisable()
     {
-        // tránh case đổi scene/reload mà còn kẹt trigger
         HardResetShiftState();
+        squashTween?.Kill();
+        squashTween = null;
     }
 
     private void Update()
     {
-        if (landSquashCd > 0f) landSquashCd -= Time.deltaTime;
-
         // Reload
-        if (Input.GetKeyDown(KeyCode.R) && LevelManager.I != null)
+        if (Input.GetKeyDown(KeyCode.R) && !shifting && LevelManager.I != null)
         {
             ForceCancelShiftForReload();
             LevelManager.I.ReloadCurrentLevel();
@@ -159,42 +205,34 @@ public class PlayerController : MonoBehaviour
 
         if (cd > 0f) cd -= Time.deltaTime;
 
-        // SHIFT input (desktop + mobile)
+        // SHIFT input
         if (!shifting && cd <= 0f && (Input.GetKeyDown(shiftKey) || MobileUIInput.ConsumeShiftDown()))
             TryStartShift();
 
-        // failsafe: nếu đang shift mà tween bị kill/kẹt -> trả lại trigger
+        // Shift failsafe
         if (shifting)
         {
             shiftFailsafeTimer += Time.deltaTime;
-            if (shiftFailsafeTimer >= shiftFailsafeSeconds || shiftTween == null || !shiftTween.IsActive())
-            {
-                HardResetShiftState();
-            }
-            // trong lúc shift: không xử lý jump/buffer
+            if (shiftFailsafeTimer >= shiftFailsafeSeconds)
+                ForceFinishShiftNow();
+
             coyoteTimer = 0f;
             jumpBufferTimer = 0f;
             return;
         }
 
-        // ===== grounded từ FixedUpdate (ổn định, không bị tường làm grounded giả) =====
-        bool groundedNow = groundedFixed;
+        // Grounding for coyote
+        bool groundedNow = groundedFixed || IsSupportedByRays();
 
-        // squash/land
-        HandleSquashStretch(groundedNow);
+        if (groundedNow) coyoteTimer = coyoteTime;
+        else coyoteTimer = Mathf.Max(0f, coyoteTimer - Time.deltaTime);
 
-        // coyote
-        coyoteTimer = groundedNow ? coyoteTime : Mathf.Max(0f, coyoteTimer - Time.deltaTime);
-
-        // buffer countdown
         if (jumpBufferTimer > 0f)
             jumpBufferTimer = Mathf.Max(0f, jumpBufferTimer - Time.deltaTime);
 
-        // register jump input (desktop + mobile)
         if (Input.GetButtonDown("Jump") || MobileUIInput.ConsumeJumpDown())
             jumpBufferTimer = jumpBufferTime;
 
-        // consume
         if (jumpBufferTimer > 0f && coyoteTimer > 0f)
         {
             Jump();
@@ -207,51 +245,83 @@ public class PlayerController : MonoBehaviour
     {
         if (shifting) return;
 
-        UpdateContactsFixed(); // cập nhật grounded/wall từ contact normals
+        UpdateContactsFixed();
 
-        // input
+        // --- Stable Land Trigger (FixedUpdate) ---
+        bool groundedNow = groundedFixed || IsSupportedByRays();
+
+        if (!groundedNow)
+        {
+            airTime += Time.fixedDeltaTime;
+        }
+        else
+        {
+            // Just landed
+            if (!groundedPrevFixed && enableSquashStretch && airTime >= minAirTimeForLand)
+            {
+                float fallSpeed = Vector2.Dot(rb.linearVelocity, GravityDown); // + = falling
+
+                if (fallSpeed >= minFallSpeedForLand && (Time.time - lastLandAt) >= landTriggerCooldown)
+                {
+                    PlayLandSquash();
+                    lastLandAt = Time.time;
+                }
+            }
+
+            airTime = 0f;
+        }
+
+        groundedPrevFixed = groundedNow;
+
+        // Input
         float xMobile = MobileUIInput.Horizontal;
         float x = Mathf.Abs(xMobile) > 0.01f ? xMobile : Input.GetAxisRaw("Horizontal");
 
-        // đảo input theo camera flip
         if (CameraFlip2D.I != null && CameraFlip2D.I.IsViewFlipped)
             x *= -1f;
 
         if (controlsInverted)
             x *= -1f;
 
-        // Movement: dùng accel/decel để tránh rung khi solver đẩy ra khỏi tường
-        Vector2 v = rb.linearVelocity;
-
         float targetVx = x * moveSpeed;
 
-        // Nếu đang tì vào tường và input đang đẩy vào tường -> không cho target đẩy tiếp
-        if ((x < -0.01f && wallLeftFixed) || (x > 0.01f && wallRightFixed))
-            targetVx = 0f;
-
-        float rate = (Mathf.Abs(targetVx) > Mathf.Abs(v.x)) ? accel : decel;
-        v.x = Mathf.MoveTowards(v.x, targetVx, rate * Time.fixedDeltaTime);
-
-        // Anti-tunnel: clamp tốc độ rơi theo gravity
-        if (clampFallSpeed)
+        // Block pushing ONLY when contacting dynamic bodies
+        if (blockPushingDynamicBodies)
         {
-            float vRel = v.y * GravitySign; // rơi => âm
-            vRel = Mathf.Clamp(vRel, -maxFallSpeed, maxRiseSpeed);
-            v.y = vRel * GravitySign;
+            if (targetVx > 0f && dynRightFixed) targetVx = 0f;
+            if (targetVx < 0f && dynLeftFixed) targetVx = 0f;
+        }
+
+        float vx = rb.linearVelocity.x;
+        float rate = Mathf.Abs(targetVx) > 0.01f ? acceleration : deceleration;
+        vx = Mathf.MoveTowards(vx, targetVx, rate * Time.fixedDeltaTime);
+
+        Vector2 v = rb.linearVelocity;
+        v.x = vx;
+
+        if (clampVerticalSpeed)
+        {
+            float vyRel = v.y * GravitySign;
+            float maxUp = Mathf.Max(0.01f, maxRiseSpeed);
+            float maxDown = Mathf.Max(0.01f, maxFallSpeed);
+
+            vyRel = Mathf.Clamp(vyRel, -maxDown, maxUp);
+            v.y = vyRel * GravitySign;
         }
 
         rb.linearVelocity = v;
-    }
 
-    // =========================================================
-    // Contacts (ground/wall) - 핵 fix chống rung + grounded giả
-    // =========================================================
+        float face = Mathf.Abs(x) > 0.01f ? x : rb.linearVelocity.x;
+        ApplyFacing(face);
+    }
 
     private void UpdateContactsFixed()
     {
         groundedFixed = false;
         wallLeftFixed = false;
         wallRightFixed = false;
+        dynLeftFixed = false;
+        dynRightFixed = false;
 
         var filter = new ContactFilter2D
         {
@@ -260,73 +330,117 @@ public class PlayerController : MonoBehaviour
             useTriggers = false
         };
 
-        int count = rb.GetContacts(filter, contactBuf);
+        ContactPoint2D[] contacts = new ContactPoint2D[16];
+        int count = rb.GetContacts(filter, contacts);
 
-        Vector2 up = GravityUp;
+        Vector2 upRelToGravity = GravityUp;
 
         for (int i = 0; i < count; i++)
         {
-            Vector2 n = contactBuf[i].normal;
+            Vector2 n = contacts[i].normal;
 
-            // Ground: normal phải hướng theo "up" (ngược gravity)
-            if (Vector2.Dot(n, up) >= groundNormalThreshold)
+            float dotGround = Vector2.Dot(n, upRelToGravity);
+            if (dotGround >= groundNormalThreshold)
                 groundedFixed = true;
 
-            // Wall side: normal phải hướng ngang đủ lớn
-            if (Mathf.Abs(n.x) >= wallNormalThreshold)
+            float dotLeft = Vector2.Dot(n, Vector2.right);
+            float dotRight = Vector2.Dot(n, Vector2.left);
+
+            if (dotLeft >= wallNormalThreshold) wallLeftFixed = true;
+            if (dotRight >= wallNormalThreshold) wallRightFixed = true;
+
+            // Dynamic side contact (for anti-push)
+            var col = contacts[i].collider;
+            var otherRb = col != null ? col.attachedRigidbody : null;
+            bool otherDynamic = otherRb != null && otherRb.bodyType == RigidbodyType2D.Dynamic;
+
+            float dotGround_dyn = dotGround; // reuse but keep name separate in case you tweak later
+            if (otherDynamic && dotGround_dyn < groundNormalThreshold)
             {
-                // normal hướng từ tường -> player
-                if (n.x > 0f) wallLeftFixed = true;
-                else wallRightFixed = true;
+                if (dotLeft >= wallNormalThreshold) dynLeftFixed = true;
+                if (dotRight >= wallNormalThreshold) dynRightFixed = true;
             }
         }
     }
 
-    // =========================================================
-    // Actions
-    // =========================================================
+    private void ApplyFacing(float x)
+    {
+        if (spriteRenderer == null) return;
+        if (Mathf.Abs(x) < 0.01f) return;
+
+        spriteRenderer.flipX = (x < 0f);
+    }
 
     private void Jump()
     {
-        rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
-        PlayJumpStretch();
-        rb.AddForce(Vector2.up * jumpForce * GravitySign, ForceMode2D.Impulse);
+        if (shifting) return;
+
+        Vector2 v = rb.linearVelocity;
+        v.y = 0f;
+        rb.linearVelocity = v;
+
+        rb.AddForce(GravityUp * jumpForce, ForceMode2D.Impulse);
+
+        if (enableSquashStretch)
+            PlayJumpStretch();
+    }
+
+    private void PlayJumpStretch()
+    {
+        if (visualRoot == null) return;
+
+        squashTween?.Kill();
+
+        Vector3 squash = new Vector3(baseVisualScale.x * jumpSquashX, baseVisualScale.y * jumpSquashY, baseVisualScale.z);
+        Vector3 stretch = new Vector3(baseVisualScale.x * jumpStretchX, baseVisualScale.y * jumpStretchY, baseVisualScale.z);
+
+        squashTween = DOTween.Sequence()
+            .Append(visualRoot.DOScale(squash, jumpSquashDuration).SetEase(squashEase))
+            .Append(visualRoot.DOScale(stretch, jumpStretchDuration).SetEase(stretchEase))
+            .Append(visualRoot.DOScale(baseVisualScale, 0.08f).SetEase(Ease.OutQuad))
+            .SetLink(gameObject);
+    }
+
+    private void PlayLandSquash()
+    {
+        if (visualRoot == null) return;
+
+        squashTween?.Kill();
+
+        Vector3 land = new Vector3(baseVisualScale.x * landSquashX, baseVisualScale.y * landSquashY, baseVisualScale.z);
+
+        squashTween = DOTween.Sequence()
+            .Append(visualRoot.DOScale(land, landDuration).SetEase(squashEase))
+            .Append(visualRoot.DOScale(baseVisualScale, landDuration * 0.9f).SetEase(Ease.OutQuad))
+            .SetLink(gameObject);
     }
 
     private void TryStartShift()
     {
         if (shifting || cd > 0f) return;
 
-        if (requireGroundedToShift && !groundedFixed)
-            return;
+        if (requireGroundedToShift)
+        {
+            if (!CanStartShiftFromEdge())
+            {
+                failShake?.ShakeFail();
+                return;
+            }
+        }
 
         if (blockShiftWhenStandingOnWall && IsStandingOnWall())
+        {
+            failShake?.ShakeFail();
             return;
+        }
 
         DoShift();
-    }
-
-    private bool IsStandingOnWall()
-    {
-        if (!groundedFixed) return false;
-
-        // nếu đang grounded mà collider dưới chân thuộc wallMask -> true
-        // cách nhẹ: dùng contacts đã có, tìm contact ground và check layer của collider
-        // (ContactPoint2D không luôn có collider, nên dùng Overlap nhỏ dưới chân)
-        Vector2 down = GravityDown;
-
-        Bounds b = box.bounds;
-        Vector2 probe = (Vector2)b.center + down * (b.extents.y + 0.02f);
-
-        Collider2D hit = Physics2D.OverlapCircle(probe, 0.05f, wallMask);
-        return hit != null;
     }
 
     private void DoShift()
     {
         if (WorldShiftManager.I == null) return;
 
-        // clear buffer/coyote để tránh "shift xong tự nhảy"
         coyoteTimer = 0f;
         jumpBufferTimer = 0f;
 
@@ -334,65 +448,81 @@ public class PlayerController : MonoBehaviour
         cd = shiftCooldown;
         shiftFailsafeTimer = 0f;
 
-        shiftTween?.Kill(false);
+        shiftTween?.Kill();
+        shiftTween = null;
 
-        // lưu state rollback
-        WorldState beforeWorld = WorldShiftManager.I.SolidWorld;
-        float beforeGravityScale = rb.gravityScale;
-        Vector2 beforePos = rb.position;
-        RigidbodyType2D beforeBodyType = rb.bodyType;
+        if (finishShiftRoutine != null)
+        {
+            StopCoroutine(finishShiftRoutine);
+            finishShiftRoutine = null;
+        }
 
-        // hướng gravity cũ để “chìm qua mặt đang đứng”
+        shiftBeforeWorld = WorldShiftManager.I.SolidWorld;
+        shiftBeforeGravityScale = rb.gravityScale;
+        shiftBeforePos = rb.position;
+        shiftBeforeBodyType = rb.bodyType;
+
         Vector2 oldGravityDir = GravityDown;
-
         float push = ComputePassDistance(oldGravityDir);
 
-        // khóa physics trong lúc tween để solver không giằng co
         rb.linearVelocity = Vector2.zero;
-        rb.angularVelocity = 0f;
         rb.bodyType = RigidbodyType2D.Kinematic;
 
-        // trigger để đi xuyên trong lúc shift
         box.isTrigger = true;
 
-        // đổi world + đảo gravity
         WorldShiftManager.I.Toggle();
-        rb.gravityScale = -beforeGravityScale;
+        rb.gravityScale = -shiftBeforeGravityScale;
 
-        // squash visual nhẹ (tuỳ thích)
-        if (enableSquashStretch) KillSquashTween();
+        shiftTween = rb.DOMove(shiftBeforePos + oldGravityDir * push, shiftAnimDuration * 2f)
+            .SetEase(Ease.InOutSine)
+            .SetUpdate(UpdateType.Fixed)
+            .OnComplete(() => { EndShiftAndCheckOverlap(); });
+    }
 
-        Sequence seq = DOTween.Sequence();
+    private void EndShiftAndCheckOverlap()
+    {
+        box.isTrigger = false;
+        rb.bodyType = shiftBeforeBodyType;
 
-        seq.Append(
-            rb.DOMove(beforePos + oldGravityDir * push, shiftAnimDuration * 2f)
-              .SetEase(Ease.InOutSine)
-        );
+        Physics2D.SyncTransforms();
 
-        seq.OnComplete(() =>
+        finishShiftRoutine = StartCoroutine(FinishShift(shiftBeforeWorld, shiftBeforeGravityScale, shiftBeforePos, shiftBeforeBodyType));
+    }
+
+    private void ForceFinishShiftNow()
+    {
+        if (!shifting) return;
+
+        shiftTween?.Kill();
+        shiftTween = null;
+
+        EndShiftAndCheckOverlap();
+    }
+
+    private IEnumerator FinishShift(WorldState beforeWorld, float beforeGravityScale, Vector2 beforePos, RigidbodyType2D beforeBodyType)
+    {
+        if (delayOverlapCheckOneFixed)
+            yield return new WaitForFixedUpdate();
+
+        Physics2D.SyncTransforms();
+
+        if (IsOverlappingSolid())
         {
-            // trả về state
-            box.isTrigger = false;
-            rb.bodyType = beforeBodyType;
+            bool resolved = false;
+            if (resolveInsteadOfRollback)
+                resolved = TryResolveOverlap();
 
-            shifting = false;
-            shiftFailsafeTimer = 0f;
-
-            Physics2D.SyncTransforms();
-
-            // nếu kẹt thì rollback nhanh
-            if (IsOverlappingSolid())
-            {
+            if (!resolved && rollbackIfStuck)
                 RollbackShift(beforeWorld, beforeGravityScale, beforePos, beforeBodyType);
-            }
-        });
+        }
 
-        shiftTween = seq;
+        shifting = false;
+        shiftFailsafeTimer = 0f;
+        finishShiftRoutine = null;
     }
 
     private float ComputePassDistance(Vector2 oldGravityDir)
     {
-        // cast từ center theo gravity cũ để tìm mặt đang đứng
         Vector2 center = box.bounds.center;
         float extY = box.bounds.extents.y;
 
@@ -405,16 +535,181 @@ public class PlayerController : MonoBehaviour
         return extY * 2f + passExtra;
     }
 
-    // =========================================================
-    // Overlap/rollback safety
-    // =========================================================
+    private bool IsSupportedByRays()
+    {
+        float support = GetGroundSupportFraction(Mathf.Max(3, edgeSupportRays), out _, out _);
+        return support > 0f;
+    }
+
+    private float GetGroundSupportFraction(int rays, out int leftHits, out int rightHits)
+    {
+        rays = Mathf.Clamp(rays, 3, 21);
+        leftHits = 0;
+        rightHits = 0;
+
+        Bounds b = box.bounds;
+        Vector2 dir = GravityDown;
+
+        float footY = (GravitySign > 0f) ? b.min.y : b.max.y;
+
+        float margin = Mathf.Clamp01(edgeRayMargin);
+        float xMin = Mathf.Lerp(b.min.x, b.max.x, margin);
+        float xMax = Mathf.Lerp(b.max.x, b.min.x, margin);
+
+        float dist = groundCheckExtra + 0.12f;
+        const float inset = 0.02f;
+
+        int hits = 0;
+        int mid = rays / 2;
+
+        for (int i = 0; i < rays; i++)
+        {
+            float t = (float)i / (rays - 1);
+            float x = Mathf.Lerp(xMin, xMax, t);
+            Vector2 origin = new Vector2(x, footY) - dir * inset;
+
+            RaycastHit2D hit = Physics2D.Raycast(origin, dir, dist, solidMask);
+            if (!hit.collider) continue;
+
+            hits++;
+
+            if (i < mid) leftHits++;
+            else if (i > mid) rightHits++;
+            else { leftHits++; rightHits++; }
+        }
+
+        return hits / (float)rays;
+    }
+
+    private bool CanStartShiftFromEdge()
+    {
+        float minSupport = Mathf.Clamp01(1f - maxOverhangFractionToShift);
+        float support = GetGroundSupportFraction(edgeSupportRays, out int leftHits, out int rightHits);
+
+        if (support <= 0f) return false;
+        if (support < minSupport) return false;
+
+        if (nudgeBackBeforeShift && support < 0.999f)
+        {
+            Vector2 nudgeDir;
+            if (rightHits < leftHits) nudgeDir = Vector2.left;
+            else if (leftHits < rightHits) nudgeDir = Vector2.right;
+            else nudgeDir = Vector2.zero;
+
+            if (nudgeDir != Vector2.zero)
+            {
+                float moved = 0f;
+                float bestSupport = support;
+
+                while (moved < nudgeMaxDistance)
+                {
+                    if (!CanCastMove(nudgeDir, nudgeStep)) break;
+
+                    rb.position += nudgeDir * nudgeStep;
+                    moved += nudgeStep;
+
+                    Physics2D.SyncTransforms();
+
+                    float newSupport = GetGroundSupportFraction(edgeSupportRays, out _, out _);
+                    if (newSupport > bestSupport + 0.001f) bestSupport = newSupport;
+
+                    if (newSupport >= 0.999f) break;
+                    if (newSupport + 0.001f < bestSupport) break;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private bool CanCastMove(Vector2 dir, float dist)
+    {
+        var filter = new ContactFilter2D { useLayerMask = true, layerMask = solidMask, useTriggers = false };
+        RaycastHit2D[] hits = new RaycastHit2D[8];
+        return box.Cast(dir, filter, hits, dist) == 0;
+    }
+
+    private bool IsStandingOnWall()
+    {
+        if (wallMask.value == 0) return false;
+
+        int rays = Mathf.Max(3, edgeSupportRays);
+        Bounds b = box.bounds;
+        Vector2 dir = GravityDown;
+        float footY = (GravitySign > 0f) ? b.min.y : b.max.y;
+
+        float margin = Mathf.Clamp01(edgeRayMargin);
+        float xMin = Mathf.Lerp(b.min.x, b.max.x, margin);
+        float xMax = Mathf.Lerp(b.max.x, b.min.x, margin);
+
+        float dist = groundCheckExtra + 0.12f;
+        const float inset = 0.02f;
+
+        for (int i = 0; i < rays; i++)
+        {
+            float t = (rays == 1) ? 0.5f : (float)i / (rays - 1);
+            float x = Mathf.Lerp(xMin, xMax, t);
+            Vector2 origin = new Vector2(x, footY) - dir * inset;
+
+            RaycastHit2D hit = Physics2D.Raycast(origin, dir, dist, wallMask);
+            if (hit.collider != null)
+                return true;
+        }
+
+        return false;
+    }
+
+    private bool TryGetPenetrationVector(out Vector2 pushOut)
+    {
+        pushOut = Vector2.zero;
+
+        var filter = new ContactFilter2D { useLayerMask = true, layerMask = solidMask, useTriggers = false };
+        Collider2D[] hits = new Collider2D[24];
+        int count = box.Overlap(filter, hits);
+
+        bool any = false;
+
+        for (int i = 0; i < count; i++)
+        {
+            Collider2D other = hits[i];
+            if (other == null || other == box) continue;
+            if (other.attachedRigidbody != null && other.attachedRigidbody == rb) continue;
+
+            ColliderDistance2D d = Physics2D.Distance(box, other);
+            if (!d.isOverlapped) continue;
+
+            float penetration = -d.distance;
+            if (penetration <= stuckPenetrationEpsilon) continue;
+
+            pushOut += (-d.normal) * (penetration + resolveSkin);
+            any = true;
+        }
+
+        return any;
+    }
 
     private bool IsOverlappingSolid()
     {
-        var filter = new ContactFilter2D { useLayerMask = true, layerMask = solidMask, useTriggers = false };
-        Collider2D[] hits = new Collider2D[12];
-        int count = box.Overlap(filter, hits);
-        return count > 0;
+        return TryGetPenetrationVector(out _);
+    }
+
+    private bool TryResolveOverlap()
+    {
+        for (int iter = 0; iter < resolveIterations; iter++)
+        {
+            if (!TryGetPenetrationVector(out Vector2 push))
+                return true;
+
+            if (push.sqrMagnitude < 1e-8f)
+                break;
+
+            push = Vector2.ClampMagnitude(push, resolveMaxStep);
+            rb.position += push;
+
+            Physics2D.SyncTransforms();
+        }
+
+        return !TryGetPenetrationVector(out _);
     }
 
     private void RollbackShift(WorldState beforeWorld, float beforeGravityScale, Vector2 beforePos, RigidbodyType2D beforeBodyType)
@@ -427,146 +722,62 @@ public class PlayerController : MonoBehaviour
 
         rb.gravityScale = beforeGravityScale;
         rb.position = beforePos;
+        rb.linearVelocity = Vector2.zero;
 
         Physics2D.SyncTransforms();
 
         box.isTrigger = false;
         rb.bodyType = beforeBodyType;
-
-        shifting = false;
-        shiftFailsafeTimer = 0f;
     }
 
     private void HardResetShiftState()
     {
+        shiftTween?.Kill();
+        shiftTween = null;
+
+        if (finishShiftRoutine != null)
+        {
+            StopCoroutine(finishShiftRoutine);
+            finishShiftRoutine = null;
+        }
+
         shifting = false;
         shiftFailsafeTimer = 0f;
 
-        shiftTween?.Kill(false);
-        shiftTween = null;
-
-        if (box != null)
-            box.isTrigger = false;
-
-        if (rb != null)
-        {
-            if (!rb.simulated) rb.simulated = true;
-            if (rb.bodyType != RigidbodyType2D.Dynamic) rb.bodyType = RigidbodyType2D.Dynamic;
-        }
+        if (box != null) box.isTrigger = false;
+        if (rb != null && rb.bodyType != RigidbodyType2D.Dynamic)
+            rb.bodyType = RigidbodyType2D.Dynamic;
     }
 
-    public void ForceCancelShiftForReload()
+    private void ForceCancelShiftForReload()
     {
-        StopAllCoroutines();
         HardResetShiftState();
 
-        cd = 0f;
+        if (visualRoot != null)
+            visualRoot.localScale = baseVisualScale;
 
-        if (rb != null)
-        {
-            rb.linearVelocity = Vector2.zero;
-            rb.angularVelocity = 0f;
-        }
-    }
-
-    // =========================================================
-    // Public API (UI/Triggers)
-    // =========================================================
-
-    public void InvertControls(bool state) => controlsInverted = state;
-    public void FlipGravity() => rb.gravityScale *= -1f;
-
-    // Nếu bạn muốn UI gọi trực tiếp thay vì MobileUIInput
-    public void UI_Jump() { if (!shifting) jumpBufferTimer = jumpBufferTime; }
-    public void UI_Shift() { if (!shifting) TryStartShift(); }
-
-    public bool IsShifting => shifting;
-    public bool IsGroundedNow => groundedFixed;
-
-    // =========================================================
-    // Squash & Stretch
-    // =========================================================
-
-    private void KillSquashTween()
-    {
-        if (squashTween != null && squashTween.IsActive())
-            squashTween.Kill(false);
+        squashTween?.Kill();
         squashTween = null;
     }
 
-    private void PlayJumpStretch()
+    public void InvertControls(bool state) => controlsInverted = state;
+
+    public void FlipGravity()
     {
-        if (!enableSquashStretch || visualRoot == null) return;
-
-        KillSquashTween();
-        visualRoot.localScale = baseVisualScale;
-
-        Vector3 squash = new Vector3(baseVisualScale.x * 1.10f, baseVisualScale.y * 0.90f, baseVisualScale.z);
-        Vector3 stretch = new Vector3(baseVisualScale.x * 0.85f, baseVisualScale.y * 1.22f, baseVisualScale.z);
-
-        var seq = DOTween.Sequence();
-        seq.Append(visualRoot.DOScale(squash, 0.05f).SetEase(Ease.OutQuad));
-        seq.Append(visualRoot.DOScale(stretch, 0.08f).SetEase(Ease.OutQuad));
-        seq.Append(visualRoot.DOScale(baseVisualScale, 0.12f).SetEase(Ease.OutQuad));
-        squashTween = seq;
+        rb.gravityScale *= -1f;
     }
 
-    private void PlayLandSquash()
+    public void UI_Jump()
     {
-        if (!enableSquashStretch || visualRoot == null) return;
-
-        KillSquashTween();
-        visualRoot.localScale = baseVisualScale;
-
-        Vector3 impact = new Vector3(baseVisualScale.x * 1.25f, baseVisualScale.y * 0.78f, baseVisualScale.z);
-
-        var seq = DOTween.Sequence();
-        seq.Append(visualRoot.DOScale(impact, 0.06f).SetEase(Ease.OutQuad));
-        seq.Append(visualRoot.DOScale(baseVisualScale, 0.12f).SetEase(Ease.OutBack));
-        squashTween = seq;
+        if (shifting) return;
+        jumpBufferTimer = jumpBufferTime;
     }
 
-    private void HandleSquashStretch(bool groundedNow)
+    public void UI_Shift()
     {
-        if (!enableSquashStretch || visualRoot == null)
-        {
-            wasGrounded = groundedNow;
-            return;
-        }
-
-        // vRel < 0 nghĩa là đang rơi theo gravity (dù gravity đảo)
-        float vRel = rb.linearVelocity.y * GravitySign;
-
-        if (!groundedNow)
-        {
-            airTime += Time.deltaTime;
-
-            // Chỉ re-arm nếu:
-            // 1) ở trên không liên tục đủ lâu
-            // 2) và thực sự đang rơi/di chuyển đáng kể (tránh rung sát đất)
-            if (airTime >= rearmAirTime && vRel <= -minFallSpeedToCount)
-                landSquashArmed = true;
-
-            wasGrounded = false;
-            return;
-        }
-
-        // grounded
-        airTime = 0f;
-
-        // ĐÁP ĐẤT: chỉ squash 1 lần khi đang armed + cooldown đã hết
-        if (landSquashArmed && landSquashCd <= 0f)
-        {
-            PlayLandSquash();
-            landSquashArmed = false;
-            landSquashCd = landSquashCooldown;
-        }
-
-        // về scale gốc nếu không có tween
-        if (squashTween == null || !squashTween.IsActive())
-            visualRoot.localScale = Vector3.Lerp(visualRoot.localScale, baseVisualScale, Time.deltaTime * airBlendSpeed);
-
-        wasGrounded = true;
+        TryStartShift();
     }
 
+    public bool IsShifting => shifting;
+    public bool IsGroundedNow => groundedFixed || IsSupportedByRays();
 }
