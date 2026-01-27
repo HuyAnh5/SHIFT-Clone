@@ -136,7 +136,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &10616175
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2893,11 +2893,11 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 10616175}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -848, y: -430}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 50, y: 50}
   m_SizeDelta: {x: 125, y: 125}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_Pivot: {x: 0, y: 0}
 --- !u!114 &950265426
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8135,10 +8135,14 @@ MonoBehaviour:
   pulseOnTrigger: 1
   pulseDuration: 0.12
   pulseScale: 1.06
-  useMaxLevelReached: 1
+  useMaxLevelReached: 0
   unlockJumpAtLevel: 2
   unlockActionAtLevel: 3
   unlockSwapAtLevel: 13
+  hideLockedButtonsCompletely: 1
+  swapArea: {fileID: 0}
+  swapVisual: {fileID: 0}
+  swapButtonFallbackToMark: 1
   hideSwapIconWhenLocked: 1
   dimLockedButtons: 1
   lockedAlpha: 0.08

@@ -66,6 +66,45 @@ public class MobileJumpCombinationZone : MonoBehaviour,
     [SerializeField] private float pulseDuration = 0.12f;
     [SerializeField] private float pulseScale = 1.06f;
 
+    [Header("Tutorial Unlocks (by Level)")]
+    [Tooltip("If ON: unlocks are based on the maximum level index the player has reached (persisted in PlayerPrefs). If OFF: based only on the current loaded level.")]
+    [SerializeField] private bool useMaxLevelReached = false;
+
+    [Tooltip("Jump button is locked until this level index (LV_#). Example: 2 means LV_1 locked, LV_2+ unlocked.")]
+    [Min(1)]
+    [SerializeField] private int unlockJumpAtLevel = 2;
+
+    [Tooltip("Action button is locked until this level index (LV_#).")]
+    [Min(1)]
+    [SerializeField] private int unlockActionAtLevel = 3;
+
+    [Tooltip("SWAP (air action / forced swap) is locked until this level index (LV_#). Set 1 to unlock from the start.")]
+    [Min(1)]
+    [SerializeField] private int unlockSwapAtLevel = 4;
+
+    [Header("Locked Button Visibility")]
+    [Tooltip("If ON: locked buttons are hidden/disabled (SetActive(false)). If OFF: locked buttons stay visible and are only dimmed.")]
+    [SerializeField] private bool hideLockedButtonsCompletely = true;
+
+    [Tooltip("Optional: the SWAP button UI rect. If not assigned, can fall back to Mark button UI (see below).")]
+    [SerializeField] private RectTransform swapArea;
+
+    [Tooltip("Optional: the SWAP button visual. If not assigned, can fall back to Mark button visual (see below).")]
+    [SerializeField] private CanvasGroup swapVisual;
+
+    [Tooltip("If swapArea/swapVisual are not set, treat Mark button as the Swap button for visibility locking.")]
+    [SerializeField] private bool swapButtonFallbackToMark = true;
+
+    [Tooltip("If swap is locked, force Mark button to always show the Mark icon (never show Swap icon).")]
+    [SerializeField] private bool hideSwapIconWhenLocked = true;
+
+    [Tooltip("Dim locked buttons by overriding alpha (only used when hideLockedButtonsCompletely = false).")]
+    [SerializeField] private bool dimLockedButtons = true;
+    [SerializeField] private float lockedAlpha = 0.08f;
+
+    [Tooltip("When pressing a locked button, do a Fail Shake (if CameraShake2D is available).")]
+    [SerializeField] private bool failShakeOnLockedPress = true;
+
     // --- runtime ---
     private int activePointerId = int.MinValue;
     private bool jumpTriggeredThisHold;
@@ -75,6 +114,10 @@ public class MobileJumpCombinationZone : MonoBehaviour,
     private Region heldRegion = Region.None;
 
     private RectTransform ZoneRT => dragZoneOverride != null ? dragZoneOverride : (RectTransform)transform;
+
+    // Optional: allow a dedicated Swap button, or reuse Mark button for swap unlocking/visibility.
+    private RectTransform SwapAreaRT => swapArea != null ? swapArea : (swapButtonFallbackToMark ? markArea : null);
+    private CanvasGroup SwapVisualCG => swapVisual != null ? swapVisual : (swapButtonFallbackToMark ? markVisual : null);
 
     // scale cache for pulses
     private Vector3 jumpBaseScale = Vector3.one;
@@ -93,6 +136,12 @@ public class MobileJumpCombinationZone : MonoBehaviour,
 
     private bool lastShowSwap;
 
+    // unlock runtime
+    private const string PREF_MAX_LEVEL = "MaxLevelReached";
+    private int gateLevelCached = 1;
+    private int lastLevelIndexSeen = -1;
+    private bool lockedFeedbackThisHold;
+
 
     private void Awake()
     {
@@ -102,12 +151,18 @@ public class MobileJumpCombinationZone : MonoBehaviour,
 
         if (markSwap == null) markSwap = FindAnyObjectByType<PlayerMarkSwapController>();
 
+        RefreshGateLevel(force: true);
+
+        ApplyLockedVisibility();
+
         // start in idle
         ApplyVisuals(Region.None);
     }
 
     private void LateUpdate()
     {
+        RefreshGateLevel();
+        ApplyLockedVisibility();
         RefreshMarkIcon();
     }
 
@@ -116,6 +171,8 @@ public class MobileJumpCombinationZone : MonoBehaviour,
         if (markSwap == null || markIcon == null || iconMark == null || iconSwap == null) return;
 
         bool showSwap = markSwap.UI_ShouldShowSwapIcon();
+        if (hideSwapIconWhenLocked && !IsSwapUnlocked())
+            showSwap = false;
         if (showSwap == lastShowSwap) return;
 
         markIcon.sprite = showSwap ? iconSwap : iconMark;
@@ -136,6 +193,9 @@ public class MobileJumpCombinationZone : MonoBehaviour,
 
         jumpTriggeredThisHold = false;
         secondaryTriggeredThisHold = false;
+        lockedFeedbackThisHold = false;
+
+        RefreshGateLevel(force: true);
 
         HandleAtPosition(e);
     }
@@ -175,6 +235,12 @@ public class MobileJumpCombinationZone : MonoBehaviour,
         // 1) Jump: trigger once per hold (only when grounded)
         if (!jumpTriggeredThisHold && r == Region.Jump)
         {
+            if (!IsJumpUnlocked())
+            {
+                LockedFeedback();
+                return;
+            }
+
             MobileUIInput.TriggerJump(); // lu�n cho v�o buffer
             jumpTriggeredThisHold = true;
             Pulse(Region.Jump);
@@ -188,6 +254,12 @@ public class MobileJumpCombinationZone : MonoBehaviour,
         if (r == Region.Action)
         {
             secondaryTriggeredThisHold = true;
+
+            if (!IsActionUnlocked())
+            {
+                LockedFeedback();
+                return;
+            }
 
             if (slideAfterJumpForcesSwap && jumpTriggeredThisHold)
                 StartWaitAirborneThenSwap();
@@ -209,13 +281,13 @@ public class MobileJumpCombinationZone : MonoBehaviour,
     private Region GetRegionAtPoint(Vector2 screenPos, Camera cam)
     {
         // Priority: Action > Mark > Jump (in case of overlap)
-        if (actionArea != null && RectTransformUtility.RectangleContainsScreenPoint(actionArea, screenPos, cam))
+        if (actionArea != null && actionArea.gameObject.activeInHierarchy && RectTransformUtility.RectangleContainsScreenPoint(actionArea, screenPos, cam))
             return Region.Action;
 
-        if (markArea != null && RectTransformUtility.RectangleContainsScreenPoint(markArea, screenPos, cam))
+        if (markArea != null && markArea.gameObject.activeInHierarchy && RectTransformUtility.RectangleContainsScreenPoint(markArea, screenPos, cam))
             return Region.Mark;
 
-        if (jumpArea != null && RectTransformUtility.RectangleContainsScreenPoint(jumpArea, screenPos, cam))
+        if (jumpArea != null && jumpArea.gameObject.activeInHierarchy && RectTransformUtility.RectangleContainsScreenPoint(jumpArea, screenPos, cam))
             return Region.Jump;
 
         return Region.None;
@@ -230,6 +302,12 @@ public class MobileJumpCombinationZone : MonoBehaviour,
         }
         else
         {
+            if (!IsSwapUnlocked())
+            {
+                LockedFeedback();
+                return;
+            }
+
             MobileUIInput.TriggerSwap();
             Pulse(Region.Action);
         }
@@ -237,6 +315,12 @@ public class MobileJumpCombinationZone : MonoBehaviour,
 
     private void StartWaitAirborneThenSwap()
     {
+        if (!IsSwapUnlocked())
+        {
+            LockedFeedback();
+            return;
+        }
+
         if (waitAirborneCo != null)
             StopCoroutine(waitAirborneCo);
 
@@ -252,6 +336,11 @@ public class MobileJumpCombinationZone : MonoBehaviour,
         {
             if (player == null)
             {
+                if (!IsSwapUnlocked())
+                {
+                    LockedFeedback();
+                    yield break;
+                }
                 MobileUIInput.TriggerSwap();
                 Pulse(Region.Action);
                 yield break;
@@ -259,6 +348,11 @@ public class MobileJumpCombinationZone : MonoBehaviour,
 
             if (!player.IsGroundedNow)
             {
+                if (!IsSwapUnlocked())
+                {
+                    LockedFeedback();
+                    yield break;
+                }
                 MobileUIInput.TriggerSwap();
                 Pulse(Region.Action);
                 yield break;
@@ -275,6 +369,7 @@ public class MobileJumpCombinationZone : MonoBehaviour,
         activePointerId = int.MinValue;
         jumpTriggeredThisHold = false;
         secondaryTriggeredThisHold = false;
+        lockedFeedbackThisHold = false;
 
         if (waitAirborneCo != null)
         {
@@ -288,12 +383,83 @@ public class MobileJumpCombinationZone : MonoBehaviour,
 
     // ----------------- Visuals -----------------
 
+    private void ApplyLockedVisibility()
+    {
+        // If we hide locked buttons completely, also disable their hit regions by disabling their GameObjects.
+        if (!hideLockedButtonsCompletely)
+        {
+            SetActiveSafe(jumpArea, true);
+            SetActiveSafe(actionArea, true);
+            SetActiveSafe(markArea, true);
+            SetActiveSafe(jumpVisual, true);
+            SetActiveSafe(actionVisual, true);
+            SetActiveSafe(markVisual, true);
+
+            // Dedicated swap button (if any)
+            SetActiveSafe(swapArea, true);
+            SetActiveSafe(swapVisual, true);
+            return;
+        }
+
+        bool jumpOn = IsJumpUnlocked();
+        bool actionOn = IsActionUnlocked();
+        bool swapOn = IsSwapUnlocked();
+
+        // Jump
+        SetActiveSafe(jumpArea, jumpOn);
+        SetActiveSafe(jumpVisual, jumpOn);
+
+        // Action
+        SetActiveSafe(actionArea, actionOn);
+        SetActiveSafe(actionVisual, actionOn);
+
+        // Swap button visibility: use dedicated swap UI if assigned; otherwise optionally reuse Mark button.
+        var swapRT = SwapAreaRT;
+        var swapCG = SwapVisualCG;
+        if (swapRT != null) SetActiveSafe(swapRT, swapOn);
+        if (swapCG != null) SetActiveSafe(swapCG, swapOn);
+
+        // If we are NOT reusing Mark as Swap, keep Mark always visible.
+        if (!swapButtonFallbackToMark)
+        {
+            SetActiveSafe(markArea, true);
+            SetActiveSafe(markVisual, true);
+        }
+    }
+
+    private static void SetActiveSafe(RectTransform rt, bool on)
+    {
+        if (rt == null) return;
+        if (rt.gameObject.activeSelf == on) return;
+        rt.gameObject.SetActive(on);
+    }
+
+    private static void SetActiveSafe(CanvasGroup cg, bool on)
+    {
+        if (cg == null) return;
+        if (cg.gameObject.activeSelf == on) return;
+        cg.gameObject.SetActive(on);
+    }
+
     private void ApplyVisuals(Region region)
     {
         // exactly ONE highlighted. If None -> all idle
-        SetAlpha(jumpVisual, region == Region.Jump ? pressedAlpha : idleAlpha);
-        SetAlpha(actionVisual, region == Region.Action ? pressedAlpha : idleAlpha);
-        SetAlpha(markVisual, region == Region.Mark ? pressedAlpha : idleAlpha);
+        float jumpA = region == Region.Jump ? pressedAlpha : idleAlpha;
+        float actionA = region == Region.Action ? pressedAlpha : idleAlpha;
+        float markA = region == Region.Mark ? pressedAlpha : idleAlpha;
+
+        if (!hideLockedButtonsCompletely && dimLockedButtons)
+        {
+            if (!IsJumpUnlocked()) jumpA = lockedAlpha;
+            if (!IsActionUnlocked()) actionA = lockedAlpha;
+            // If Mark button is being used as Swap button, dim it too when Swap is locked.
+            if (swapButtonFallbackToMark && !IsSwapUnlocked()) markA = lockedAlpha;
+            // Mark itself is not locked; Swap-lock only affects what Action does and the Mark icon.
+        }
+
+        SetAlpha(jumpVisual, jumpA);
+        SetAlpha(actionVisual, actionA);
+        SetAlpha(markVisual, markA);
     }
 
     private static void SetAlpha(CanvasGroup cg, float a)
@@ -358,5 +524,44 @@ public class MobileJumpCombinationZone : MonoBehaviour,
 
         // if someone changed alpha externally, don't leave it in a weird state
         cg.alpha = Mathf.Clamp01(cg.alpha);
+    }
+
+    // ----------------- Unlock gating -----------------
+
+    private void RefreshGateLevel(bool force = false)
+    {
+        int currentLevel = 1;
+        if (LevelManager.I != null)
+            currentLevel = Mathf.Max(1, LevelManager.I.CurrentLevelIndex);
+
+        if (!force && currentLevel == lastLevelIndexSeen) return;
+        lastLevelIndexSeen = currentLevel;
+
+        if (!useMaxLevelReached)
+        {
+            gateLevelCached = currentLevel;
+            return;
+        }
+
+        int max = PlayerPrefs.GetInt(PREF_MAX_LEVEL, currentLevel);
+        if (currentLevel > max)
+        {
+            max = currentLevel;
+            PlayerPrefs.SetInt(PREF_MAX_LEVEL, max);
+        }
+        gateLevelCached = Mathf.Max(1, max);
+    }
+
+    private bool IsJumpUnlocked() => gateLevelCached >= unlockJumpAtLevel;
+    private bool IsActionUnlocked() => gateLevelCached >= unlockActionAtLevel;
+    private bool IsSwapUnlocked() => gateLevelCached >= unlockSwapAtLevel;
+
+    private void LockedFeedback()
+    {
+        if (lockedFeedbackThisHold) return;
+        lockedFeedbackThisHold = true;
+
+        if (failShakeOnLockedPress && CameraShake2D.I != null)
+            CameraShake2D.I.ShakeFail();
     }
 }
