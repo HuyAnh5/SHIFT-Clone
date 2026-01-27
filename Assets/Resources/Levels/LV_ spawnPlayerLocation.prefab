@@ -1213,6 +1213,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fade798f6bd84ed418680dd456053db3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GravityFlipTrigger
+  playerTag: Player
 --- !u!1 &3671146470120541157
 GameObject:
   m_ObjectHideFlags: 0
@@ -2753,34 +2754,34 @@ Tilemap:
   - first: {x: -1, y: -2, z: 0}
     second:
       serializedVersion: 2
-      m_TileIndex: 1
-      m_TileSpriteIndex: 0
+      m_TileIndex: 0
+      m_TileSpriteIndex: 1
       m_TileMatrixIndex: 0
-      m_TileColorIndex: 0
+      m_TileColorIndex: 1
       m_TileObjectToInstantiateIndex: 65535
       dummyAlignment: 0
-      m_AllTileFlags: 1073741827
+      m_AllTileFlags: 1073741825
   - first: {x: 0, y: -2, z: 0}
     second:
       serializedVersion: 2
-      m_TileIndex: 1
-      m_TileSpriteIndex: 0
+      m_TileIndex: 0
+      m_TileSpriteIndex: 1
       m_TileMatrixIndex: 0
-      m_TileColorIndex: 0
+      m_TileColorIndex: 1
       m_TileObjectToInstantiateIndex: 65535
       dummyAlignment: 0
-      m_AllTileFlags: 1073741827
+      m_AllTileFlags: 1073741825
   m_AnimatedTiles: {}
   m_TileAssetArray:
-  - m_RefCount: 0
-    m_Data: {fileID: 0}
   - m_RefCount: 2
+    m_Data: {fileID: 11400000, guid: 9720f0c831417a94f900838015d52c0e, type: 2}
+  - m_RefCount: 0
     m_Data: {fileID: 0}
   m_TileSpriteArray:
-  - m_RefCount: 2
-    m_Data: {fileID: 0}
   - m_RefCount: 0
     m_Data: {fileID: 0}
+  - m_RefCount: 2
+    m_Data: {fileID: -3695116986010374263, guid: 27479deaf12430449b613e8fbb24aab4, type: 3}
   m_TileMatrixArray:
   - m_RefCount: 2
     m_Data:
@@ -2801,13 +2802,13 @@ Tilemap:
       e32: 0
       e33: 1
   m_TileColorArray:
-  - m_RefCount: 2
-    m_Data: {r: 0.90768176, g: 0.4802201, b: 0.54479986, a: 1}
   - m_RefCount: 0
     m_Data: {r: 4.5e-44, g: 4.5e-44, b: 4.5e-44, a: 4.5e-44}
+  - m_RefCount: 2
+    m_Data: {r: 0, g: 0, b: 0, a: 1}
   m_TileObjectToInstantiateArray: []
   m_AnimationFrameRate: 1
-  m_Color: {r: 0, g: 0, b: 0, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Origin: {x: -10, y: -16, z: 0}
   m_Size: {x: 30, y: 23, z: 1}
   m_TileAnchor: {x: 0.5, y: 0.5, z: 0}
@@ -3287,33 +3288,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 14229bab82774884ab6aa21ef551e1c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::QuantumPassManager2D
-  markerTilemap: {fileID: 6436736998830717463}
-  blackSolidFill: {fileID: 5685332623719818351}
-  blackGhostTrigger: {fileID: 461823709640944202}
-  whiteSolidFill: {fileID: 3945556576359665299}
-  whiteGhostTrigger: {fileID: 6818603328544128555}
+  markerTilemap: {fileID: 6436736998830717463, guid: 08f96283a85b0694084307b80afe9268, type: 3}
+  blackSolidFill: {fileID: 5685332623719818351, guid: 08f96283a85b0694084307b80afe9268, type: 3}
+  blackGhostTrigger: {fileID: 461823709640944202, guid: 08f96283a85b0694084307b80afe9268, type: 3}
+  whiteSolidFill: {fileID: 3945556576359665299, guid: 08f96283a85b0694084307b80afe9268, type: 3}
+  whiteGhostTrigger: {fileID: 6818603328544128555, guid: 08f96283a85b0694084307b80afe9268, type: 3}
   paintTile: {fileID: 11400000, guid: 3fff230f633f5934bb334982dbc87056, type: 2}
   startOpenWorld: 1
+  perGroupStartFromMarkerTile: 1
+  markerOpenInBlackTile: {fileID: 11400000, guid: 3fff230f633f5934bb334982dbc87056, type: 2}
+  markerOpenInWhiteTile: {fileID: 11400000, guid: 3f4fc51731c3e164a9e5f545e53562c3, type: 2}
+  randomIfUnrecognized: 0
   swapDelay: 0.5
   playerCollider: {fileID: 0}
   activeAlpha: 1
   inactiveAlpha: 0
   buildOutline: 1
   outlineRoot: {fileID: 0}
-  dashMaterial: {fileID: 0}
+  dashMaterial: {fileID: 2100000, guid: da27d66334c7d7d41bd2be9a8f873d81, type: 2}
   dashScrollSpeed: 1
   outlineWidth: 0.08
   outlineSortingLayer: Default
   outlineSortingOrder: 20
-  footProbeWidthFactor: 0.45
-  footProbeHeight: 0.08
+  footProbeWidthFactor: 0.7
+  footProbeHeight: 0.2
   footProbeYOffset: 0.02
   outlineA_BlackWorld: {r: 1, g: 1, b: 1, a: 1}
   outlineA_WhiteWorld: {r: 0, g: 0, b: 0, a: 1}
   outlineB_UseSolidFillBaseColor: 1
   outlineB_Custom: {r: 0, g: 0, b: 0, a: 1}
-  outlineB_Alpha: 1
-  dashTilingX: 0.25
+  outlineB_Alpha: 0
+  dashTilingX: 1.5
   playerTag: Player
 --- !u!114 &8592328852319421922
 MonoBehaviour:

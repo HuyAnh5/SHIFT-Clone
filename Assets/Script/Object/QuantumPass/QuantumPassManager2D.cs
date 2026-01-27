@@ -42,6 +42,13 @@ public class QuantumPassManager2D : MonoBehaviour
     [Header("Initial State")]
     [SerializeField] private WorldState startOpenWorld = WorldState.Black; // all groups OPEN in this world at start
 
+    [Header("Per-Group Start Open (optional, by marker tile type)")]
+    [SerializeField] private bool perGroupStartFromMarkerTile = true;
+    [SerializeField] private TileBase markerOpenInBlackTile; // assign QP_OpenInBlack
+    [SerializeField] private TileBase markerOpenInWhiteTile; // assign QP_OpenInWhite
+    [SerializeField] private bool randomIfUnrecognized = false;
+
+
     [Header("Swap Rule")]
     [SerializeField, Min(0f)] private float swapDelay = 0.5f;
 
@@ -265,7 +272,8 @@ public class QuantumPassManager2D : MonoBehaviour
             Vector3Int start = GetAny(unvisited);
             unvisited.Remove(start);
 
-            var g = new Group(id, startOpenWorld);
+            var g = new Group(id, GetStartOpenForCell(start));
+
             q.Enqueue(start);
 
             while (q.Count > 0)
@@ -903,4 +911,24 @@ public class QuantumPassManager2D : MonoBehaviour
             unchecked { return (a.GetHashCode() * 397) ^ b.GetHashCode(); }
         }
     }
+
+    private WorldState GetStartOpenForCell(Vector3Int cell)
+    {
+        if (!perGroupStartFromMarkerTile || markerTilemap == null)
+            return startOpenWorld;
+
+        var t = markerTilemap.GetTile(cell);
+
+        if (t != null)
+        {
+            if (markerOpenInBlackTile != null && t == markerOpenInBlackTile) return WorldState.Black;
+            if (markerOpenInWhiteTile != null && t == markerOpenInWhiteTile) return WorldState.White;
+        }
+
+        if (randomIfUnrecognized)
+            return (UnityEngine.Random.value < 0.5f) ? WorldState.Black : WorldState.White;
+
+        return startOpenWorld; // fallback
+    }
+
 }

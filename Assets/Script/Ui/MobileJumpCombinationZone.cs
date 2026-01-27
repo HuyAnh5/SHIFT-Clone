@@ -1,6 +1,8 @@
-using System.Collections;
+ï»¿using System.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
+
 
 /// <summary>
 /// One-finger Jump + slide-to Action/Mark helper.
@@ -83,15 +85,43 @@ public class MobileJumpCombinationZone : MonoBehaviour,
     private Coroutine actionPulseCo;
     private Coroutine markPulseCo;
 
+    [Header("Mark Icon Swap (optional)")]
+    [SerializeField] private PlayerMarkSwapController markSwap;
+    [SerializeField] private Image markIcon;
+    [SerializeField] private Sprite iconMark;
+    [SerializeField] private Sprite iconSwap;
+
+    private bool lastShowSwap;
+
+
     private void Awake()
     {
         if (jumpVisual != null) jumpBaseScale = jumpVisual.transform.localScale;
         if (actionVisual != null) actionBaseScale = actionVisual.transform.localScale;
         if (markVisual != null) markBaseScale = markVisual.transform.localScale;
 
+        if (markSwap == null) markSwap = FindAnyObjectByType<PlayerMarkSwapController>();
+
         // start in idle
         ApplyVisuals(Region.None);
     }
+
+    private void LateUpdate()
+    {
+        RefreshMarkIcon();
+    }
+
+    private void RefreshMarkIcon()
+    {
+        if (markSwap == null || markIcon == null || iconMark == null || iconSwap == null) return;
+
+        bool showSwap = markSwap.UI_ShouldShowSwapIcon();
+        if (showSwap == lastShowSwap) return;
+
+        markIcon.sprite = showSwap ? iconSwap : iconMark;
+        lastShowSwap = showSwap;
+    }
+
 
     // Make dragging start immediately (no drag threshold) so sliding feels responsive.
     public void OnInitializePotentialDrag(PointerEventData eventData)
@@ -145,7 +175,7 @@ public class MobileJumpCombinationZone : MonoBehaviour,
         // 1) Jump: trigger once per hold (only when grounded)
         if (!jumpTriggeredThisHold && r == Region.Jump)
         {
-            MobileUIInput.TriggerJump(); // luôn cho vào buffer
+            MobileUIInput.TriggerJump(); // luï¿½n cho vï¿½o buffer
             jumpTriggeredThisHold = true;
             Pulse(Region.Jump);
             return;

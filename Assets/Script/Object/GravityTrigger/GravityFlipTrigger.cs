@@ -4,6 +4,7 @@ using UnityEngine;
 [RequireComponent(typeof(Collider2D))]
 public class GravityFlipTrigger : MonoBehaviour
 {
+    [SerializeField] private string playerTag = "Player";
     private readonly HashSet<Collider2D> inside = new();
 
     private void Reset()
@@ -16,7 +17,11 @@ public class GravityFlipTrigger : MonoBehaviour
     {
         if (inside.Contains(other)) return;
 
-        var player = other.GetComponent<PlayerController>();
+        // Chỉ trigger khi chạm Tag Player (hỗ trợ collider con: check cả root)
+        if (!other.CompareTag(playerTag) && !other.transform.root.CompareTag(playerTag))
+            return;
+
+        var player = other.GetComponentInParent<PlayerController>();
         if (player == null) return;
 
         inside.Add(other);
@@ -24,7 +29,7 @@ public class GravityFlipTrigger : MonoBehaviour
         // 1) đảo gravity
         player.FlipGravity();
 
-        // 2) đảo view (giống Shift) nhưng là "extra flip"
+        // 2) đảo view (extra flip)
         if (CameraFlip2D.I != null)
             CameraFlip2D.I.ToggleExtraFlip();
         else
@@ -33,7 +38,6 @@ public class GravityFlipTrigger : MonoBehaviour
 
     private void OnTriggerExit2D(Collider2D other)
     {
-        if (inside.Contains(other))
-            inside.Remove(other);
+        inside.Remove(other);
     }
 }

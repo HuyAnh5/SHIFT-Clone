@@ -1528,7 +1528,7 @@ MonoBehaviour:
   panelLevelSelect: {fileID: 1610079372}
   panelSettings: {fileID: 2059031685}
   gameSceneName: Game
-  levelCount: 50
+  levelCount: 0
 --- !u!1 &1368274742
 GameObject:
   m_ObjectHideFlags: 0
@@ -1670,9 +1670,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelSelectUI
   levelButtonPrefab: {fileID: 1319121725405351832, guid: 9d12570e32f993e4198ae92cd77cbbff, type: 3}
-  levelCount: 100
+  levelCount: 21
   columns: 5
   gameSceneName: Game
+  useLock: 0
 --- !u!114 &1534555567
 MonoBehaviour:
   m_ObjectHideFlags: 0

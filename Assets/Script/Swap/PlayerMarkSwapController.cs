@@ -47,8 +47,8 @@ public class PlayerMarkSwapController : MonoBehaviour
         if (Input.GetKeyDown(markKey) || MobileUIInput.ConsumeMarkDown())
             TryMarkToggle();
 
-        if (Input.GetKeyDown(swapKey) || MobileUIInput.ConsumeSwapDown())
-            TrySwap();
+        //if (Input.GetKeyDown(swapKey) || MobileUIInput.ConsumeSwapDown())
+        //    TrySwap();
     }
 
     private void TryMarkToggle()
@@ -56,25 +56,20 @@ public class PlayerMarkSwapController : MonoBehaviour
         WorldState w = (WorldShiftManager.I != null) ? WorldShiftManager.I.SolidWorld : WorldState.Black;
         int wi = WorldIndex(w);
 
+        // Nếu đã mark trong world hiện tại => bấm Mark lần 2 sẽ Swap luôn
+        if (markedByWorld[wi] != null)
+        {
+            TrySwap();
+            return;
+        }
+
+        // Chưa mark => tìm block gần nhất để mark
         var candidate = FindNearestSwapBlockInCurrentWorld(w);
         if (candidate == null)
         {
             cameraShake?.ShakeFail();
             return;
         }
-
-        var current = markedByWorld[wi];
-
-        // bấm mark lần nữa khi đang chạm/gần đúng object đó => unmark
-        if (current != null && current == candidate)
-        {
-            current.SetMarked(false);
-            markedByWorld[wi] = null;
-            return;
-        }
-
-        // mark cái mới (unmark cái cũ trong cùng world)
-        if (current != null) current.SetMarked(false);
 
         candidate.SetMarked(true);
         markedByWorld[wi] = candidate;
@@ -96,13 +91,6 @@ public class PlayerMarkSwapController : MonoBehaviour
 
         // không cho swap khi đang shift animation
         if (playerController != null && playerController.IsShifting)
-        {
-            cameraShake?.ShakeFail();
-            return;
-        }
-
-        // chỉ swap khi airborne
-        if (requireAirborne && playerController != null && playerController.IsGroundedNow)
         {
             cameraShake?.ShakeFail();
             return;
@@ -198,6 +186,28 @@ public class PlayerMarkSwapController : MonoBehaviour
     {
         TrySwap();
     }
+
+    public bool UI_ShouldShowSwapIcon()
+    {
+        WorldState w = (WorldShiftManager.I != null) ? WorldShiftManager.I.SolidWorld : WorldState.Black;
+        int wi = WorldIndex(w);
+
+        var t = markedByWorld[wi];
+
+        // nếu null => không có mark => hiện icon Mark
+        if (t == null) return false;
+
+        // nếu target không còn active/đúng world nữa => auto clear để khỏi kẹt icon swap
+        if (!t.IsActiveInCurrentWorld())
+        {
+            markedByWorld[wi] = null;
+            return false;
+        }
+
+        // CỐT LÕI: chỉ cần đang có mark là hiện icon Swap (không check grounded/airborne)
+        return true;
+    }
+
 
     private static int WorldIndex(WorldState w) => (w == WorldState.Black) ? 0 : 1;
 

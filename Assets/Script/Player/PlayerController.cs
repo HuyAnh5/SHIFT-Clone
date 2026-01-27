@@ -12,13 +12,21 @@ public class PlayerController : MonoBehaviour
 
     [Header("Jump")]
     [SerializeField] private float jumpForce = 14f;
+    private bool jumpQueued;
+    private bool jumpAvailable = true; // anti double-impulse when spamming/buffer
+
+    [Header("Jump Buffer")]
+    [Tooltip("If you press jump slightly BEFORE landing, jump will trigger as soon as you're allowed to jump (ground/coyote).")]
+    [SerializeField] private float jumpBufferTime = 0.10f;
+    private float jumpBufferTimer;
 
     [Header("Celeste Feel - Input Forgiveness")]
     [Tooltip("Still can jump for this long after leaving ground.")]
     [SerializeField] private float coyoteTime = 0.10f;
 
-    [Tooltip("If jump pressed early, keep it for this long.")]
-    [SerializeField] private float jumpBufferTime = 0.10f;
+    [Header("Ground Filter (anti wall-ray)")]
+    [SerializeField, Range(0f, 1f)] private float groundMaxNormalX = 0.2f; // tile vuông: 0.1–0.25
+
 
     [Header("Physics / Contact")]
     [SerializeField] private LayerMask solidMask = ~0;
@@ -141,7 +149,6 @@ public class PlayerController : MonoBehaviour
 
     // Coyote + Buffer runtime
     private float coyoteTimer;
-    private float jumpBufferTimer;
 
     // Contacts (fixed)
     private bool groundedFixed;
@@ -205,6 +212,18 @@ public class PlayerController : MonoBehaviour
 
         if (cd > 0f) cd -= Time.deltaTime;
 
+        // Jump input buffer (Celeste-style)
+        // Press slightly before landing => jump will trigger on landing.
+        bool jumpDown = Input.GetButtonDown("Jump") || MobileUIInput.ConsumeJumpDown();
+        if (jumpDown)
+        {
+            jumpBufferTimer = jumpBufferTime;
+        }
+        else if (jumpBufferTimer > 0f)
+        {
+            jumpBufferTimer = Mathf.Max(0f, jumpBufferTimer - Time.deltaTime);
+        }
+
         // SHIFT input
         if (!shifting && cd <= 0f && (Input.GetKeyDown(shiftKey) || MobileUIInput.ConsumeShiftDown()))
             TryStartShift();
@@ -217,28 +236,10 @@ public class PlayerController : MonoBehaviour
                 ForceFinishShiftNow();
 
             coyoteTimer = 0f;
-            jumpBufferTimer = 0f;
             return;
         }
 
-        // Grounding for coyote
-        bool groundedNow = groundedFixed || IsSupportedByRays();
 
-        if (groundedNow) coyoteTimer = coyoteTime;
-        else coyoteTimer = Mathf.Max(0f, coyoteTimer - Time.deltaTime);
-
-        if (jumpBufferTimer > 0f)
-            jumpBufferTimer = Mathf.Max(0f, jumpBufferTimer - Time.deltaTime);
-
-        if (Input.GetButtonDown("Jump") || MobileUIInput.ConsumeJumpDown())
-            jumpBufferTimer = jumpBufferTime;
-
-        if (jumpBufferTimer > 0f && coyoteTimer > 0f)
-        {
-            Jump();
-            jumpBufferTimer = 0f;
-            coyoteTimer = 0f;
-        }
     }
 
     private void FixedUpdate()
@@ -248,7 +249,7 @@ public class PlayerController : MonoBehaviour
         UpdateContactsFixed();
 
         // --- Stable Land Trigger (FixedUpdate) ---
-        bool groundedNow = groundedFixed || IsSupportedByRays();
+        bool groundedNow = groundedFixed; // use real contacts for jump/land (avoid early ray support)
 
         if (!groundedNow)
         {
@@ -269,6 +270,24 @@ public class PlayerController : MonoBehaviour
             }
 
             airTime = 0f;
+        }
+
+        // Reset jump availability only when we truly LAND (prevents double jump from buffered spam)
+        if (groundedNow && !groundedPrevFixed)
+            jumpAvailable = true;
+
+        // Coyote timer updated in FixedUpdate for deterministic physics order
+        if (groundedNow && jumpAvailable)
+            coyoteTimer = coyoteTime;
+        else
+            coyoteTimer = Mathf.Max(0f, coyoteTimer - Time.fixedDeltaTime);
+
+        // Consume jump buffer ONLY when jump is actually available
+        if (jumpBufferTimer > 0f && jumpAvailable && coyoteTimer > 0f)
+        {
+            jumpQueued = true;
+            jumpBufferTimer = 0f;
+            coyoteTimer = 0f;
         }
 
         groundedPrevFixed = groundedNow;
@@ -310,6 +329,13 @@ public class PlayerController : MonoBehaviour
         }
 
         rb.linearVelocity = v;
+
+        if (jumpQueued)
+        {
+            jumpQueued = false;
+            Jump();
+        }
+
 
         float face = Mathf.Abs(x) > 0.01f ? x : rb.linearVelocity.x;
         ApplyFacing(face);
@@ -374,6 +400,10 @@ public class PlayerController : MonoBehaviour
     private void Jump()
     {
         if (shifting) return;
+
+        jumpAvailable = false;
+        jumpBufferTimer = 0f;
+        coyoteTimer = 0f;
 
         Vector2 v = rb.linearVelocity;
         v.y = 0f;
@@ -442,7 +472,6 @@ public class PlayerController : MonoBehaviour
         if (WorldShiftManager.I == null) return;
 
         coyoteTimer = 0f;
-        jumpBufferTimer = 0f;
 
         shifting = true;
         cd = shiftCooldown;
@@ -570,6 +599,13 @@ public class PlayerController : MonoBehaviour
 
             RaycastHit2D hit = Physics2D.Raycast(origin, dir, dist, solidMask);
             if (!hit.collider) continue;
+
+            float dotUp = Vector2.Dot(hit.normal, GravityUp);
+            if (dotUp < groundNormalThreshold) continue;
+            if (Mathf.Abs(hit.normal.x) > groundMaxNormalX) continue;
+
+            // (optional) nếu bị “hit 0 distance” ở corner thì bỏ qua
+            if (hit.distance <= 0.0001f) continue;
 
             hits++;
 
@@ -770,8 +806,11 @@ public class PlayerController : MonoBehaviour
     public void UI_Jump()
     {
         if (shifting) return;
+
+        // Only set buffer here. Actual consume happens in FixedUpdate (with groundedFixed + jumpAvailable)
         jumpBufferTimer = jumpBufferTime;
     }
+
 
     public void UI_Shift()
     {
