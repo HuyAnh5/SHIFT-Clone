@@ -136,7 +136,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &10616175
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1835,6 +1835,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1024
   requireAirborne: 1
+  enforceAirborneConstraint: 0
+  markPressAgainToSwap: 1
   validateDestination: 0
   solidMask:
     serializedVersion: 2
@@ -2452,7 +2454,6 @@ GameObject:
   - component: {fileID: 735051899}
   - component: {fileID: 735051898}
   - component: {fileID: 735051897}
-  - component: {fileID: 735051901}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -2539,6 +2540,8 @@ RectTransform:
   - {fileID: 1953844125}
   - {fileID: 672736965}
   - {fileID: 10616175}
+  - {fileID: 1649666370}
+  - {fileID: 1325129365}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -2546,29 +2549,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
---- !u!114 &735051901
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 735051896}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cfd4f32781307a849b2caebbc0d32b4f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::InGameButtonsManager
-  btnReset: {fileID: 452200083}
-  btnHome: {fileID: 1701330936}
-  btnOpenSettings: {fileID: 1023246996}
-  settingsPanel: {fileID: 10616174}
-  btnCloseSettings: {fileID: 950265426}
-  pauseWhenSettingsOpen: 1
-  homeSceneName: Home
-  player: {fileID: 498821464}
-  gearMenu: {fileID: 0}
-  failShake: {fileID: 519420035}
-  autoCloseGearMenuOnAction: 1
 --- !u!1 &941521268
 GameObject:
   m_ObjectHideFlags: 0
@@ -6676,6 +6656,77 @@ Sprite:
   m_Bones: []
   m_ScriptableObjects: []
   m_SpriteID: 
+--- !u!1 &1325129364
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1325129365}
+  - component: {fileID: 1325129366}
+  - component: {fileID: 1325129367}
+  m_Layer: 5
+  m_Name: UI_Mobile
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1325129365
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1325129364}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 735051900}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1325129366
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1325129364}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2676f8cf26d664438959e6ffef4309a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MobileAbilityGate
+  useMaxLevelReached: 0
+  unlockJumpAtLevel: 2
+  unlockActionAtLevel: 3
+  unlockSwapAtLevel: 13
+--- !u!114 &1325129367
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1325129364}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 150f07a4b12b5ae4698549846ec9c92c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MobileMarkSwapIcon
+  markSwap: {fileID: 498821470}
+  gate: {fileID: 1325129366}
+  icon: {fileID: 1000980038}
+  iconMark: {fileID: -1054269438768773927, guid: 2566c76f11aa5db4e93ba408664259b1, type: 3}
+  iconSwap: {fileID: 6194844521592783662, guid: d42a6b54ff8c7584b89868381af536ad, type: 3}
+  hideSwapIconWhenLocked: 1
 --- !u!1 &1331865574
 GameObject:
   m_ObjectHideFlags: 0
@@ -7684,6 +7735,79 @@ MonoBehaviour:
   turretPrefab: {fileID: 3800089540918285233, guid: a5af20d5c521c2844a7b75dcc57c8e39, type: 3}
   spawnedParent: {fileID: 1447160578}
   hideMarkerTilemapRenderer: 1
+--- !u!1 &1649666369
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1649666370}
+  - component: {fileID: 1649666372}
+  - component: {fileID: 1649666371}
+  m_Layer: 5
+  m_Name: UI_InGame
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1649666370
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1649666369}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 735051900}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1649666371
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1649666369}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f2c538cd3173cd458ce659f3d8e02be, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SettingsPanelController
+  panel: {fileID: 10616174}
+  btnClose: {fileID: 950265426}
+  pauseWhenOpen: 1
+--- !u!114 &1649666372
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1649666369}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfd4f32781307a849b2caebbc0d32b4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InGameButtonsManager
+  btnReset: {fileID: 452200083}
+  btnHome: {fileID: 1701330936}
+  btnOpenSettings: {fileID: 1023246996}
+  settings: {fileID: 1649666371}
+  homeSceneName: Home
+  player: {fileID: 498821464}
+  gearMenu: {fileID: 672736966}
+  failShake: {fileID: 519420035}
+  autoCloseGearMenuOnAction: 1
 --- !u!1 &1701330932
 GameObject:
   m_ObjectHideFlags: 0
@@ -8120,6 +8244,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MobileJumpActionZone
   player: {fileID: 498821464}
+  gate: {fileID: 0}
   jumpArea: {fileID: 695820551}
   actionArea: {fileID: 2016828108}
   markArea: {fileID: 1000980036}
@@ -8135,22 +8260,13 @@ MonoBehaviour:
   pulseOnTrigger: 1
   pulseDuration: 0.12
   pulseScale: 1.06
-  useMaxLevelReached: 0
-  unlockJumpAtLevel: 2
-  unlockActionAtLevel: 3
-  unlockSwapAtLevel: 13
   hideLockedButtonsCompletely: 1
   swapArea: {fileID: 0}
   swapVisual: {fileID: 0}
   swapButtonFallbackToMark: 1
-  hideSwapIconWhenLocked: 1
   dimLockedButtons: 1
   lockedAlpha: 0.08
   failShakeOnLockedPress: 1
-  markSwap: {fileID: 498821470}
-  markIcon: {fileID: 1000980038}
-  iconMark: {fileID: -1054269438768773927, guid: 2566c76f11aa5db4e93ba408664259b1, type: 3}
-  iconSwap: {fileID: 6194844521592783662, guid: d42a6b54ff8c7584b89868381af536ad, type: 3}
 --- !u!114 &1953844127
 MonoBehaviour:
   m_ObjectHideFlags: 0
